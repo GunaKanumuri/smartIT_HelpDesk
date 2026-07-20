@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Local database (generated at runtime)
+data/triageiq.db
+
+# Generated model metrics (regenerate with model/train_model.py,
+# or remove this line if you'd rather commit them)
+model/profiles/*/metrics.json
+
+# Custom per-workspace training data and models — this can be a real
+# customer's own uploaded messages, never commit it
+data/custom/
+model/custom/

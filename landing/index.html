@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TriageIQ - AI-powered customer support triage and classification. Every message sorted before it reaches your team.">
+    <title>TriageIQ | Intelligent Support Classification</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Reset & Variables */
+        :root {
+            --bg-color: #0A0E1A;
+            --primary: #00D4FF;
+            --secondary: #F2A93B;
+            --text-main: #E8E4DC;
+            --text-muted: #6B7280;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            line-height: 1.2;
+            font-weight: 700;
+        }
+
+        h2 { font-size: 2.5rem; margin-bottom: 1.5rem; }
+        h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+        
+        .highlight { color: var(--primary); }
+        .highlight-secondary { color: var(--secondary); }
+
+        /* Background Effects */
+        .gradient-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(242, 169, 59, 0.05) 0%, transparent 50%);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Layout & Components */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-family: var(--font-sans);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* 1. Nav */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 0;
+            z-index: 100;
+            transition: background 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(10, 14, 26, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* 2. Hero Section */
+        .hero {
+            padding: 10rem 0 6rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* 3D Shapes */
+        .shapes-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        .shape {
+            position: absolute;
+            background: linear-gradient(45deg, rgba(0,212,255,0.1), rgba(242,169,59,0.1));
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(5px);
+            animation: float 20s infinite linear;
+        }
+
+        .shape-1 { width: 100px; height: 100px; border-radius: 10px; top: 20%; left: 10%; animation-duration: 25s; }
+        .shape-2 { width: 150px; height: 150px; border-radius: 50%; top: 60%; right: 5%; animation-duration: 30s; animation-direction: reverse; }
+        .shape-3 { width: 80px; height: 80px; transform: rotate(45deg); top: 80%; left: 20%; animation-duration: 20s; }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotateX(0) rotateY(0) rotateZ(0); }
+            50% { transform: translateY(-50px) rotateX(180deg) rotateY(90deg) rotateZ(180deg); }
+            100% { transform: translateY(0) rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+        }
+
+        /* Try It Sorter Demo */
+        .demo-card {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
+        }
+
+        .demo-interface {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+
+        .demo-input-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .demo-input {
+            flex: 1;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            resize: none;
+            height: 80px;
+        }
+
+        .demo-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .lanes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .lane {
+            background: rgba(0,0,0,0.3);
+            border: 1px dashed var(--glass-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            min-height: 120px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .lane-header {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .ticket {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.3s ease forwards;
+            word-wrap: break-word;
+        }
+
+        .ticket.urgent-high { border-left: 3px solid #ef4444; }
+        .ticket.urgent-med { border-left: 3px solid var(--secondary); }
+        .ticket.urgent-low { border-left: 3px solid #10b981; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .active-lane {
+            background: rgba(0, 212, 255, 0.05);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.1) inset;
+        }
+
+        /* 3. Problem Section */
+        .section {
+            padding: 8rem 0;
+        }
+        
+        .section-header {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 4rem;
+        }
+
+        /* Animation classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 4. How It Works */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            position: relative;
+        }
+
+        .steps-grid::before {
+            content: '';
+            position: absolute;
+            top: 3rem;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+            z-index: 0;
+        }
+
+        .step-card {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .step-number {
+            width: 4rem;
+            height: 4rem;
+            background: var(--bg-color);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        /* 5. Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        /* 6. Integration */
+        .code-block {
+            font-family: var(--font-mono);
+            background: rgba(0,0,0,0.5);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            color: #A6ACCD;
+            font-size: 0.875rem;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .integration-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn.active, .tab-btn:hover {
+            color: var(--primary);
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 7. Sectors */
+        .sectors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .sector-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sector-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-color: rgba(242, 169, 59, 0.3);
+        }
+
+        .sector-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 8. Pricing */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .pricing-card {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .pricing-card.highlighted {
+            border-color: var(--secondary);
+            box-shadow: 0 0 30px rgba(242, 169, 59, 0.15);
+            transform: scale(1.05);
+        }
+        
+        .pricing-card.highlighted:hover {
+            transform: scale(1.08);
+        }
+
+        .price {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 1.5rem 0;
+            font-family: var(--font-mono);
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin: 2rem 0;
+            text-align: left;
+            flex-grow: 1;
+        }
+
+        .pricing-features li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pricing-features li::before {
+            content: '✓';
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .pricing-card.highlighted .pricing-features li::before {
+            color: var(--secondary);
+        }
+
+        /* 9. Final CTA */
+        .final-cta {
+            text-align: center;
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, transparent, rgba(0, 212, 255, 0.05));
+            border-radius: 2rem;
+            margin: 4rem 0;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* 10. Footer */
+        .footer {
+            border-top: 1px solid var(--glass-border);
+            padding: 3rem 0;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero-grid, .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-content h1 { font-size: 2.5rem; }
+            .pricing-card.highlighted { transform: scale(1); }
+            .pricing-card.highlighted:hover { transform: scale(1.02); }
+            .steps-grid::before { display: none; }
+            .steps-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; } /* Simplified for demo */
+            .lanes { grid-template-columns: 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .shape { animation: none !important; }
+            .reveal { transition: none !important; opacity: 1 !important; transform: none !important; }
+            #particle-canvas { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Elements -->
+    <div class="gradient-mesh"></div>
+    <canvas id="particle-canvas"></canvas>
+    
+    <div class="shapes-container">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <!-- 1. Nav -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-content">
+            <a href="#" class="logo">
+                <span class="logo-icon"></span> TriageIQ
+            </a>
+            <div class="nav-links">
+                <a href="#how-it-works">How it works</a>
+                <a href="#sectors">Sectors</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#login" class="btn btn-outline" style="padding: 0.5rem 1rem;">Log in</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. Hero -->
+    <section class="hero" id="home">
+        <div class="container hero-grid">
+            <div class="hero-content reveal">
+                <div class="eyebrow">Intelligent Triage</div>
+                <h1>Every message sorted <span class="highlight">before</span> it reaches your team.</h1>
+                <p class="hero-subtitle">Automate your support workflow with AI that reads, classifies, and routes tickets instantly based on urgency and topic.</p>
+                <div class="hero-cta">
+                    <a href="#demo" class="btn btn-primary">Try the Demo</a>
+                    <a href="#how-it-works" class="btn btn-outline">Learn More</a>
+                </div>
+            </div>
+            
+            <div class="hero-visual reveal" style="transition-delay: 0.2s;" id="demo">
+                <div class="glass-panel demo-card" id="demo-card">
+                    <div class="demo-interface">
+                        <div class="demo-header">
+                            <h3>Live Sorter Demo</h3>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Try typing a message</span>
+                        </div>
+                        <div class="demo-input-group">
+                            <textarea id="demo-input" class="demo-input" placeholder="e.g. 'My package is damaged and I need an urgent refund!'"></textarea>
+                            <button id="demo-submit" class="btn btn-primary" style="height: 80px;">Sort</button>
+                        </div>
+                        <div class="lanes" id="demo-lanes">
+                            <div class="lane" id="lane-Billing">
+                                <div class="lane-header">Billing</div>
+                                <div class="lane-content"></div>
+                            </div>
+                            <div class="lane" id="lane-Shipping">
+                                <div class="lane-header">Shipping</div>
+                                <div class="lane-content"></div>
+                            </div>
+                            <div class="lane" id="lane-Product">
+                                <div class="lane-header">Product</div>
+                                <div class="lane-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Problem -->
+    <section class="section">
+        <div class="container">
+            <div class="glass-panel reveal" style="text-align: center; padding: 4rem 2rem;">
+                <h2 style="margin-bottom: 1rem;">Support volume grows faster than headcount ever will.</h2>
+                <p class="hero-subtitle" style="max-width: 600px; margin: 0 auto;">Don't let urgent issues drown in a sea of password resets. TriageIQ acts as your first line of defense, organizing chaos into manageable streams.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. How It Works -->
+    <section class="section" id="how-it-works">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>How It Works</h2>
+                <p class="hero-subtitle">Three simple steps to an organized inbox.</p>
+            </div>
+            
+            <div class="steps-grid">
+                <div class="step-card glass-panel reveal">
+                    <div class="step-number">1</div>
+                    <h3>Intake</h3>
+                    <p class="text-muted">Connect your existing support channels. We ingest messages securely via API or webhook.</p>
+                </div>
+                <div class="step-card glass-panel reveal" style="transition-delay: 0.2s;">
+                    <div class="step-number">2</div>
+                    <h3>Classify</h3>
+                    <p class="text-muted">Our AI analyzes sentiment, keywords, and context to determine the topic and urgency.</p>
+                </div>
+                <div class="step-card glass-panel reveal" style="transition-delay: 0.4s;">
+                    <div class="step-number">3</div>
+                    <h3>Route</h3>
+                    <p class="text-muted">Tickets are instantly assigned to the right team or agent with context attached.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Features -->
+    <section class="section" id="features">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Everything you need to scale</h2>
+            </div>
+            
+            <div class="features-grid">
+                <div class="glass-panel feature-card reveal">
+                    <div class="feature-icon">🏢</div>
+                    <h3>Multi-tenant workspaces</h3>
+                    <p>Manage multiple brands or departments from a single dashboard.</p>
+                </div>
+                <div class="glass-panel feature-card reveal">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Sector-aware intelligence</h3>
+                    <p>Models pre-trained on industry-specific terminology.</p>
+                </div>
+                <div class="glass-panel feature-card reveal">
+                    <div class="feature-icon">🚨</div>
+                    <h3>Urgency detection</h3>
+                    <p>Automatically flags angry customers and SLA-risk tickets.</p>
+                </div>
+                <div class="glass-panel feature-card reveal">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Duplicate/spam detection</h3>
+                    <p>Filters out noise before it reaches your metrics.</p>
+                </div>
+                <div class="glass-panel feature-card reveal">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Escalation alerts</h3>
+                    <p>Custom rules to notify managers of high-risk interactions.</p>
+                </div>
+                <div class="glass-panel feature-card reveal">
+                    <div class="feature-icon">✍️</div>
+                    <h3>Suggested replies</h3>
+                    <p>Agents get AI-drafted responses based on previous resolutions.</p>
+                </div>
+                <div class="glass-panel feature-card reveal">
+                    <div class="feature-icon">📊</div>
+                    <h3>SLA analytics</h3>
+                    <p>Track resolution times across different ticket categories.</p>
+                </div>
+                <div class="glass-panel feature-card reveal">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>Admin dashboard</h3>
+                    <p>Intuitive interface to tweak rules and monitor performance.</p>
+                </div>
+                <div class="glass-panel feature-card reveal">
+                    <div class="feature-icon">📈</div>
+                    <h3>Train on your data</h3>
+                    <p>The model improves continuously based on how you handle edge cases.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. For Website Owners -->
+    <section class="section" id="developers">
+        <div class="container">
+            <div class="glass-panel reveal">
+                <div class="section-header" style="margin-bottom: 2rem;">
+                    <h2>For Website Owners</h2>
+                    <p class="hero-subtitle">Integrate in minutes, not months.</p>
+                </div>
+                
+                <div class="integration-tabs">
+                    <button class="tab-btn active" onclick="showTab('tab-link')">Simple Link</button>
+                    <button class="tab-btn" onclick="showTab('tab-widget')">Embed Widget</button>
+                    <button class="tab-btn" onclick="showTab('tab-api')">REST API</button>
+                </div>
+                
+                <div id="tab-link" class="tab-content active">
+                    <p style="margin-bottom: 1rem;">Just link to your hosted TriageIQ portal.</p>
+                    <div class="code-block">&lt;a href="https://triageiq.com/your-company"&gt;Contact Support&lt;/a&gt;</div>
+                </div>
+                <div id="tab-widget" class="tab-content">
+                    <p style="margin-bottom: 1rem;">Add a floating widget to your site with one script tag.</p>
+                    <div class="code-block">&lt;script src="https://cdn.triageiq.com/widget.js" data-id="YOUR_ID"&gt;&lt;/script&gt;</div>
+                </div>
+                <div id="tab-api" class="tab-content">
+                    <p style="margin-bottom: 1rem;">Full control for custom experiences.</p>
+                    <div class="code-block">
+fetch('https://api.triageiq.com/v1/classify', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer API_KEY' },
+  body: JSON.stringify({ text: "Where is my order?" })
+});
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. Sectors -->
+    <section class="section" id="sectors">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Tailored for your industry</h2>
+                <p class="hero-subtitle">Our models understand the specific terminology of your business.</p>
+            </div>
+            
+            <div class="sectors-grid" id="sectors-grid">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. Pricing -->
+    <section class="section" id="pricing">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Simple, transparent pricing</h2>
+            </div>
+            
+            <div class="pricing-grid">
+                <div class="glass-panel pricing-card reveal">
+                    <h3>Free</h3>
+                    <div class="price">$0<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+                    <p class="text-muted">For small teams getting started.</p>
+                    <ul class="pricing-features">
+                        <li>Up to 1,000 tickets/mo</li>
+                        <li>Basic classification</li>
+                        <li>Email integration</li>
+                        <li>Community support</li>
+                    </ul>
+                    <button class="btn btn-outline" style="width: 100%;">Get Started</button>
+                </div>
+                
+                <div class="glass-panel pricing-card highlighted reveal" style="transition-delay: 0.2s;">
+                    <div class="eyebrow" style="margin: -3rem auto 1rem; background: var(--bg-color);">Most Popular</div>
+                    <h3 class="highlight-secondary">Pro</h3>
+                    <div class="price">$29<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+                    <p class="text-muted">For growing businesses.</p>
+                    <ul class="pricing-features">
+                        <li>Up to 10,000 tickets/mo</li>
+                        <li>Urgency detection</li>
+                        <li>All integrations (API, Widget)</li>
+                        <li>Custom routing rules</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <button class="btn" style="width: 100%; background: var(--secondary); color: #000;">Start Free Trial</button>
+                </div>
+                
+                <div class="glass-panel pricing-card reveal" style="transition-delay: 0.4s;">
+                    <h3>Enterprise</h3>
+                    <div class="price">Custom</div>
+                    <p class="text-muted">For high-volume support operations.</p>
+                    <ul class="pricing-features">
+                        <li>Unlimited tickets</li>
+                        <li>Custom AI model training</li>
+                        <li>Dedicated account manager</li>
+                        <li>SLA guarantees</li>
+                        <li>On-premise option</li>
+                    </ul>
+                    <button class="btn btn-outline" style="width: 100%;">Contact Sales</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. Final CTA -->
+    <section class="section">
+        <div class="container">
+            <div class="final-cta reveal">
+                <h2>Stop reading tickets just to find the urgent one.</h2>
+                <p class="hero-subtitle" style="margin-top: 1rem;">Join thousands of teams resolving issues faster.</p>
+                <a href="#pricing" class="btn btn-primary" style="margin-top: 2rem; font-size: 1.1rem; padding: 1rem 2rem;">Get Started for Free</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 10. Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem;">
+                <span class="logo-icon" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 8px;"></span>TriageIQ
+            </div>
+            <p>Built by Guna Kanumuri</p>
+            <p style="font-size: 0.8rem; margin-top: 1rem; color: rgba(255,255,255,0.3);">© 2026 TriageIQ. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // -------------------------------------------------------------
+        // USER PROVIDED CLASSIFICATION LOGIC (EXACT PRESERVATION)
+        // -------------------------------------------------------------
+        const RULES = [
+          { lane: 'Billing', keywords: ['charge', 'charged', 'bill', 'invoice', 'payment', 'card', 'price', 'subscription'], urgency: 'med' },
+          { lane: 'Shipping', keywords: ['ship', 'deliver', 'delivery', 'arrive', 'tracking', 'package', 'order'], urgency: 'med' },
+          { lane: 'Product', keywords: ['broken', 'defective', 'wrong item', 'damaged', 'not working', "doesn't work", 'refund', 'unacceptable', 'return'], urgency: 'high' },
+        ];
+
+        function classify(text) {
+          const lower = text.toLowerCase();
+          const urgentWords = ['urgent', 'asap', 'immediately', 'unacceptable', 'angry', 'furious', 'now'];
+          const isUrgent = urgentWords.some(w => lower.includes(w));
+          for (const rule of RULES) {
+            if (rule.keywords.some(k => lower.includes(k))) {
+              return { lane: rule.lane, urgency: isUrgent ? 'high' : rule.urgency };
+            }
+          }
+          return { lane: 'Product', urgency: isUrgent ? 'high' : 'low' };
+        }
+        // -------------------------------------------------------------
+
+        // UI Logic for Sorter Demo
+        const demoInput = document.getElementById('demo-input');
+        const demoSubmit = document.getElementById('demo-submit');
+        
+        function addTicket(text) {
+            if (!text.trim()) return;
+            
+            const result = classify(text);
+            const laneId = `lane-${result.lane}`;
+            const laneEl = document.getElementById(laneId);
+            const contentEl = laneEl.querySelector('.lane-content');
+            
+            // Highlight Lane temporarily
+            document.querySelectorAll('.lane').forEach(l => l.classList.remove('active-lane'));
+            laneEl.classList.add('active-lane');
+            setTimeout(() => laneEl.classList.remove('active-lane'), 1000);
+            
+            // Create ticket element
+            const ticket = document.createElement('div');
+            ticket.className = `ticket urgent-${result.urgency}`;
+            ticket.innerHTML = `<strong>${result.urgency.toUpperCase()}</strong>: ${text}`;
+            
+            // Prepend
+            contentEl.insertBefore(ticket, contentEl.firstChild);
+            
+            // Keep only latest 3 per lane to avoid clutter
+            if (contentEl.children.length > 3) {
+                contentEl.removeChild(contentEl.lastChild);
+            }
+            
+            demoInput.value = '';
+        }
+
+        demoSubmit.addEventListener('click', () => addTicket(demoInput.value));
+        demoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                addTicket(demoInput.value);
+            }
+        });
+
+        // 3D Card Hover Effect for Demo Card
+        const demoCard = document.getElementById('demo-card');
+        demoCard.addEventListener('mousemove', (e) => {
+            const rect = demoCard.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = ((y - centerY) / centerY) * -5;
+            const rotateY = ((x - centerX) / centerX) * 5;
+            
+            demoCard.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+        
+        demoCard.addEventListener('mouseleave', () => {
+            demoCard.style.transform = `perspective(1000px) rotateX(0) rotateY(0)`;
+        });
+
+        // Sticky Navbar
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Scroll Reveal Animation (Intersection Observer)
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
+        
+        const revealObserver = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, revealOptions);
+        
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Tab Switching for Integration section
+        window.showTab = function(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        };
+
+        // Populate Sectors
+        const sectors = [
+            { icon: '🥐', name: 'Bakery', desc: 'Order tracking & custom quotes' },
+            { icon: '🔧', name: 'Plumbing', desc: 'Emergency dispatch & quotes' },
+            { icon: '🍽️', name: 'Restaurant', desc: 'Reservations & feedback' },
+            { icon: '🛒', name: 'E-Commerce', desc: 'Returns, shipping, defects' },
+            { icon: '⚖️', name: 'Legal', desc: 'Consultations & document reqs' },
+            { icon: '⚕️', name: 'Medical', desc: 'Appointments & general info' },
+            { icon: '☁️', name: 'SaaS', desc: 'Bugs, billing & feature reqs' },
+            { icon: '🏠', name: 'Real Estate', desc: 'Viewings & maintenance' },
+            { icon: '🚗', name: 'Automotive', desc: 'Service scheduling & parts' },
+            { icon: '✂️', name: 'Salon', desc: 'Booking & modifications' },
+            { icon: '💪', name: 'Fitness', desc: 'Memberships & schedules' },
+            { icon: '🎓', name: 'Education', desc: 'Enrollment & tech support' },
+            { icon: '✨', name: 'Other', desc: 'Custom trained models' }
+        ];
+
+        const sectorsContainer = document.getElementById('sectors-grid');
+        sectors.forEach((s, i) => {
+            const delay = (i % 4) * 0.1;
+            const el = document.createElement('div');
+            el.className = 'glass-panel sector-card reveal';
+            el.style.transitionDelay = `${delay}s`;
+            el.innerHTML = `
+                <div class="sector-icon">${s.icon}</div>
+                <h4 style="margin-bottom: 0.5rem;">${s.name}</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">${s.desc}</p>
+            `;
+            sectorsContainer.appendChild(el);
+            revealObserver.observe(el);
+        });
+
+        // Particle Canvas Background
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Check for reduced motion
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!prefersReducedMotion) {
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 2 + 0.5;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = Math.random() > 0.5 ? 'rgba(0, 212, 255, 0.3)' : 'rgba(242, 169, 59, 0.3)';
+                }
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x > canvas.width) this.x = 0;
+                    else if (this.x < 0) this.x = canvas.width;
+                    if (this.y > canvas.height) this.y = 0;
+                    else if (this.y < 0) this.y = canvas.height;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle());
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+    </script>
+</body>
+</html>

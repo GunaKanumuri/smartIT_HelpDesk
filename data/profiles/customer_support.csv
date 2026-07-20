@@ -1,0 +1,149 @@
+ticket_text,category
+Why was I charged twice for my order?,Billing
+I don't understand this charge on my card,Billing
+Can I get an itemized invoice for last month?,Billing
+My subscription renewed but I wanted to cancel,Billing
+The price I paid doesn't match what was advertised,Billing
+I need to update my payment method,Billing
+Can you explain the extra fee on my receipt?,Billing
+I was billed after I cancelled my plan,Billing
+Is there a discount for annual billing?,Billing
+My invoice shows the wrong amount,Billing
+I want to switch from monthly to yearly billing,Billing
+Please send me a copy of my receipt,Billing
+There's a duplicate charge on my statement,Billing
+Can I set up a payment plan?,Billing
+My coupon code didn't apply at checkout,Billing
+Where is my order? It hasn't arrived yet,Shipping & Delivery
+The tracking number shows no updates,Shipping & Delivery
+My package was marked delivered but I never got it,Shipping & Delivery
+Can I change my delivery address after ordering?,Shipping & Delivery
+How long does shipping usually take?,Shipping & Delivery
+My order arrived a week late,Shipping & Delivery
+Do you offer express shipping?,Shipping & Delivery
+The courier left my package outside in the rain,Shipping & Delivery
+Can I reschedule my delivery for tomorrow?,Shipping & Delivery
+My package shows as lost in transit,Shipping & Delivery
+I need to change my shipping address before it ships,Shipping & Delivery
+Is international shipping available for my country?,Shipping & Delivery
+The delivery driver couldn't find my address,Shipping & Delivery
+Why is my order stuck at the same status for days?,Shipping & Delivery
+Can you expedite my shipment? I need it urgently,Shipping & Delivery
+The product I received is broken,Product Issue
+This isn't what I ordered - it's the wrong item,Product Issue
+The item stopped working after two days,Product Issue
+My product arrived with a big scratch on it,Product Issue
+The size doesn't match what was listed,Product Issue
+Half the pieces are missing from the box,Product Issue
+The color is completely different from the photos,Product Issue
+This product doesn't match the description at all,Product Issue
+My item arrived defective out of the box,Product Issue
+The quality is much worse than expected,Product Issue
+The zipper on the bag is already broken,Product Issue
+This device won't turn on at all,Product Issue
+I received someone else's order instead of mine,Product Issue
+The packaging was damaged and so was the product,Product Issue
+The instructions included don't match the product,Product Issue
+I want to return this item for a refund,Refund & Returns
+How do I start a return for my order?,Refund & Returns
+It's been two weeks and I still haven't gotten my refund,Refund & Returns
+Can I exchange this for a different size?,Refund & Returns
+What's your return policy for opened items?,Refund & Returns
+I returned the item but haven't received store credit,Refund & Returns
+Do I have to pay for return shipping?,Refund & Returns
+I'd like a refund instead of store credit,Refund & Returns
+The refund amount is less than what I paid,Refund & Returns
+Can I cancel my order before it refunds automatically,Refund & Returns
+How long does a refund take to process?,Refund & Returns
+I sent the item back but tracking shows no movement,Refund & Returns
+Can I return a gift without the original receipt?,Refund & Returns
+My return was rejected and I don't know why,Refund & Returns
+I want to exchange this for store credit instead,Refund & Returns
+Do you offer bulk pricing for large orders?,Sales Inquiry
+I'm interested in a demo of your product,Sales Inquiry
+What plans do you offer for small businesses?,Sales Inquiry
+Can we set up a call to discuss enterprise pricing?,Sales Inquiry
+Do you have a referral program?,Sales Inquiry
+Is there a free trial available?,Sales Inquiry
+What's the difference between your paid tiers?,Sales Inquiry
+Can I get a custom quote for my team?,Sales Inquiry
+Do you offer discounts for students or nonprofits?,Sales Inquiry
+I'd like more information before purchasing,Sales Inquiry
+Can you send me a product brochure?,Sales Inquiry
+Is there a reseller or partner program?,Sales Inquiry
+What features are included in the premium plan?,Sales Inquiry
+Can I upgrade my plan mid-cycle?,Sales Inquiry
+Do you integrate with other tools we already use?,Sales Inquiry
+My credit card was declined but I have funds available,Billing
+Can you remove my card on file and add a new one?,Billing
+Why did my monthly plan cost go up this month?,Billing
+I was charged in the wrong currency,Billing
+Please cancel my auto-renewal before the next billing cycle,Billing
+I need a tax invoice with my company's VAT number,Billing
+The promo discount wasn't reflected in my total,Billing
+Can I split this payment across two cards?,Billing
+My free trial converted to a paid plan without warning,Billing
+I'd like to downgrade my plan to reduce my monthly cost,Billing
+There's a currency conversion fee I wasn't told about,Billing
+Can you confirm my next billing date?,Billing
+I was charged for a plan I already cancelled last month,Billing
+My payment failed but you still shipped the order,Billing
+The estimated delivery date keeps changing,Shipping & Delivery
+Can you tell me which carrier is delivering my package?,Shipping & Delivery
+I moved and need to redirect my package to a new address,Shipping & Delivery
+My order shows as shipped but the tracking link is dead,Shipping & Delivery
+Is same-day delivery available in my area?,Shipping & Delivery
+The box arrived crushed from the shipping process,Shipping & Delivery
+Can someone else sign for my delivery if I'm not home?,Shipping & Delivery
+My order was split into multiple shipments unexpectedly,Shipping & Delivery
+I never received a shipping confirmation email,Shipping & Delivery
+The delivery notification says attempted but no one knocked,Shipping & Delivery
+Can I pick up my order from a local depot instead?,Shipping & Delivery
+Why does customs have my package for so long?,Shipping & Delivery
+My order got returned to sender by the courier,Shipping & Delivery
+Do you ship to PO boxes?,Shipping & Delivery
+The item smells strange like it was stored improperly,Product Issue
+The fabric ripped the first time I wore it,Product Issue
+This gadget overheats within minutes of use,Product Issue
+The battery drains completely within an hour,Product Issue
+There's a manufacturing defect visible on the surface,Product Issue
+The remote control that came with it doesn't work,Product Issue
+This smells like chemicals and seems unsafe to use,Product Issue
+The screen has dead pixels right out of the box,Product Issue
+None of the buttons on this device respond,Product Issue
+The material feels completely different from the listing photos,Product Issue
+It rattles and makes a strange noise when I use it,Product Issue
+The paint is chipping off after one day of use,Product Issue
+This doesn't fit together the way the manual shows,Product Issue
+The seal was broken when the package arrived,Product Issue
+It's leaking liquid from inside the packaging,Product Issue
+I'd like store credit instead of a cash refund,Refund & Returns
+My return label never arrived in my email,Refund & Returns
+The drop-off location wouldn't accept my return package,Refund & Returns
+I want to know the status of my pending refund request,Refund & Returns
+Can I return this even though I lost the tags?,Refund & Returns
+The refund went to my old card which is no longer active,Refund & Returns
+I'd like to swap this for a completely different product,Refund & Returns
+My exchange request has been pending for over a week,Refund & Returns
+Do returns count against my account in any way?,Refund & Returns
+I was only partially refunded and I'm not sure why,Refund & Returns
+Can I return part of a bundle and keep the rest?,Refund & Returns
+The return window says it's expired but I only just opened it,Refund & Returns
+I need a prepaid return shipping label,Refund & Returns
+Will I get my original shipping cost refunded too?,Refund & Returns
+My exchange item hasn't shipped yet after two weeks,Refund & Returns
+Can we schedule a walkthrough of your platform for our team?,Sales Inquiry
+What's included in the enterprise onboarding process?,Sales Inquiry
+Do you offer a money-back guarantee if we're not satisfied?,Sales Inquiry
+We're comparing you against a competitor - what sets you apart?,Sales Inquiry
+Can I speak with a sales representative about volume pricing?,Sales Inquiry
+Is there a setup fee for new accounts?,Sales Inquiry
+What does the onboarding timeline typically look like?,Sales Inquiry
+Do you support single sign-on for enterprise customers?,Sales Inquiry
+Can we get a proof of concept before committing?,Sales Inquiry
+What's your uptime guarantee in the service agreement?,Sales Inquiry
+Are there any long-term contract discounts available?,Sales Inquiry
+Can you walk us through case studies from similar companies?,Sales Inquiry
+Is there a dedicated account manager for larger accounts?,Sales Inquiry
+What happens to our data if we cancel the subscription?,Sales Inquiry
+Do you offer a multi-year pricing lock?,Sales Inquiry

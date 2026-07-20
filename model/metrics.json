@@ -1,0 +1,42 @@
+{
+  "test_accuracy": 0.9523809523809523,
+  "classification_report": {
+    "Hardware": {
+      "precision": 0.875,
+      "recall": 1.0,
+      "f1-score": 0.9333333333333333,
+      "support": 7.0
+    },
+    "Network": {
+      "precision": 1.0,
+      "recall": 0.8571428571428571,
+      "f1-score": 0.9230769230769231,
+      "support": 7.0
+    },
+    "Software": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 7.0
+    },
+    "accuracy": 0.9523809523809523,
+    "macro avg": {
+      "precision": 0.9583333333333334,
+      "recall": 0.9523809523809524,
+      "f1-score": 0.9521367521367522,
+      "support": 21.0
+    },
+    "weighted avg": {
+      "precision": 0.9583333333333334,
+      "recall": 0.9523809523809523,
+      "f1-score": 0.9521367521367521,
+      "support": 21.0
+    }
+  },
+  "n_samples": 105,
+  "categories": [
+    "Hardware",
+    "Network",
+    "Software"
+  ]
+}
