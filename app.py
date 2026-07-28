@@ -8,7 +8,7 @@
 # 1. IMPORTS & CONFIG       — Dependencies and Streamlit page config
 # 2. HELPERS                — Slug generation, session management
 # 3. WORKSPACE GATE         — Login/signup flow with sector selection
-# 4. TICKET SUBMISSION UI   — Relevance check → classify → submit → escalate
+# 4. TICKET SUBMISSION UI   — Runs services.ticket_pipeline, renders the result
 # =============================================================================
 
 """
@@ -25,6 +25,10 @@ Signing up automatically logs the workspace in — no separate "now go log
 in" step required, since making someone re-enter a password they just
 typed is friction with no real benefit here.
 
+The actual submission logic (relevance -> classify -> urgency -> dedupe ->
+insert -> escalate) lives in services/ticket_pipeline.py, shared with the
+FastAPI /api/submit endpoint — this file only turns the result into UI.
+
 Admin tools live in pages/1_Admin_Dashboard.py (Streamlit's multipage
 support picks up anything under pages/ automatically).
 """
@@ -37,17 +41,12 @@ import re
 
 import streamlit as st
 
-from db import database as db
-from db.database import authenticate_workspace, create_workspace, init_db, insert_ticket
+from db.database import authenticate_workspace, create_workspace, init_db
+from services.ticket_pipeline import submit_ticket
 from utils.active_model import resolve_active_model
-from utils.duplicates import find_duplicate, should_escalate_for_repeats
 from utils.knowledge_base import get_suggested_reply
-from utils.notifications import send_escalation
 from utils.profiles import PROFILES
-from utils.relevance import check_relevance
 from utils.sectors import get_sector_choices, get_sector_name
-from utils.ticket_utils import classify_ticket
-from utils.urgency import score_urgency
 
 st.set_page_config(page_title="TriageIQ", page_icon="🚀", layout="centered")
 init_db()
@@ -253,24 +252,8 @@ if ticket_text:
     with st.chat_message("user"):
         st.markdown(ticket_text)
 
-    # ----------------------------------------------------- Relevance check
-    relevance = check_relevance(ticket_text, sector, workspace["name"])
-
-    if not relevance["relevant"]:
-        with st.chat_message("assistant"):
-            st.markdown(relevance["response"])
-            if relevance.get("emergency_text") and relevance["emergency"]:
-                st.error(f"⚠️ {relevance['emergency_text']}")
-        st.toast("🚫 Message not related to this business")
-        st.stop()
-
-    # If there's an emergency keyword but the message IS relevant, show
-    # the emergency text alongside the normal ticket flow
-    if relevance.get("emergency") and relevance.get("emergency_text"):
-        st.warning(f"⚠️ {relevance['emergency_text']}")
-
     try:
-        result = classify_ticket(ticket_text, profile=profile, model=model)
+        result = submit_ticket(workspace=workspace, message=ticket_text, user_id=user_id or "guest")
     except AttributeError:
         st.error(
             "The trained model file isn't compatible with the scikit-learn version "
@@ -280,45 +263,40 @@ if ticket_text:
             "models locally, then reload this page."
         )
         st.stop()
-    urgency = score_urgency(ticket_text, result["confidence"])
 
-    # ------------------------------------------------------- Duplicate check
-    candidates = db.get_recent_tickets_for_dedup(workspace["id"], user_id or "guest")
-    duplicate = find_duplicate(ticket_text, candidates)
+    # ----------------------------------------------------- Irrelevant message
+    if result["outcome"] == "irrelevant":
+        relevance = result["relevance"]
+        with st.chat_message("assistant"):
+            st.markdown(relevance["response"])
+            if relevance.get("emergency_text") and relevance["emergency"]:
+                st.error(f"⚠️ {relevance['emergency_text']}")
+        st.toast("🚫 Message not related to this business")
+        st.stop()
 
-    if duplicate:
-        prospective_count = duplicate["duplicate_count"] + 1
-        escalate = should_escalate_for_repeats(prospective_count)
-        new_count = db.bump_duplicate(workspace["id"], duplicate["ticket_id"], escalate=escalate)
+    # If there's an emergency keyword but the message IS relevant, show
+    # the emergency text alongside the normal ticket flow
+    relevance = result["relevance"]
+    if relevance.get("emergency") and relevance.get("emergency_text"):
+        st.warning(f"⚠️ {relevance['emergency_text']}")
 
+    # ------------------------------------------------------- Duplicate ticket
+    if result["outcome"] == "duplicate":
         with st.chat_message("assistant"):
             st.markdown(
                 f"Looks like this matches something you already told us — "
-                f"ticket **{duplicate['ticket_id']}** is already open, and we've "
-                f"noted you've mentioned it {new_count}x."
+                f"ticket **{result['ticket_id']}** is already open, and we've "
+                f"noted you've mentioned it {result['duplicate_count']}x."
             )
-            if escalate:
+            if result["escalated"]:
                 st.markdown(
                     "🔴 Repeated submissions on this one — it's been escalated to "
                     "**high urgency** for a human to take a look."
                 )
-                notify_result = send_escalation(
-                    workspace_name=workspace["name"],
-                    escalation_email=workspace.get("escalation_email"),
-                    ticket_id=duplicate["ticket_id"],
-                    issue_text=ticket_text,
-                    category=result["category"],
-                    reason="repeated submissions",
-                )
-                db.record_escalation(
-                    workspace["id"], duplicate["ticket_id"], "repeated submissions",
-                    notify_result["channel"], notify_result["recipient"],
-                    notify_result["status"], notify_result["detail"],
-                )
-
-        st.toast(f"🔁 Matched existing ticket {duplicate['ticket_id']}")
+        st.toast(f"🔁 Matched existing ticket {result['ticket_id']}")
         st.stop()
 
+    # ---------------------------------------------------------- New ticket
     with st.chat_message("assistant"):
         if result["out_of_scope"]:
             st.markdown(
@@ -336,47 +314,23 @@ if ticket_text:
                 f"Your issue has been logged under **{result['category']}**. "
                 "Our team will handle it shortly. ✅"
             )
-        if urgency == "High":
+        if result["urgency"] == "High":
             st.markdown("🔴 This has been flagged as **high urgency**.")
 
-        if not is_custom and not result["out_of_scope"]:
+        if not result["is_custom_model"] and not result["out_of_scope"]:
             suggested_reply = get_suggested_reply(profile, result["category"])
             if suggested_reply:
                 with st.expander("💡 Suggested next steps while you wait"):
                     st.markdown(suggested_reply)
 
-    ticket_id = insert_ticket(
-        workspace_id=workspace["id"],
-        user_id=user_id or "guest",
-        issue_description=ticket_text,
-        category=result["category"],
-        confidence=result["confidence"],
-        urgency=urgency,
-        secondary_category=result["secondary_category"],
-        secondary_confidence=result["secondary_confidence"],
-        raw_category=result["raw_category"],
-    )
-
-    if urgency == "High":
-        notify_result = send_escalation(
-            workspace_name=workspace["name"],
-            escalation_email=workspace.get("escalation_email"),
-            ticket_id=ticket_id,
-            issue_text=ticket_text,
-            category=result["category"],
-            reason="high urgency",
-        )
-        db.record_escalation(
-            workspace["id"], ticket_id, "high urgency",
-            notify_result["channel"], notify_result["recipient"],
-            notify_result["status"], notify_result["detail"],
-        )
+    notify_result = result["notify_result"]
+    if result["urgency"] == "High" and notify_result:
         if notify_result["status"] == "sent":
             st.caption(f"🔔 Escalation email sent to {notify_result['recipient']}")
         elif notify_result["status"] == "logged":
             st.caption(f"🔔 Escalation logged — {notify_result['detail']}")
 
-    st.toast(f"📝 Ticket {ticket_id} logged")
-    st.caption(f"Ticket ID: `{ticket_id}` · Urgency: {urgency}")
+    st.toast(f"📝 Ticket {result['ticket_id']} logged")
+    st.caption(f"Ticket ID: `{result['ticket_id']}` · Urgency: {result['urgency']}")
 
 # endregion

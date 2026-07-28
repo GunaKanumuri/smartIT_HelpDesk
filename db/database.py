@@ -11,6 +11,7 @@
 # 4. TICKET CRUD           — Insert, get, update, count tickets
 # 5. DUPLICATE TRACKING    — Recent ticket lookup and duplicate bumping
 # 6. ESCALATION TRACKING   — Record and retrieve escalation events
+# 7. ADMIN SESSION TRACKING — Opaque bearer tokens for the admin API
 # =============================================================================
 
 """
@@ -18,21 +19,25 @@ db/database.py
 
 SQLite persistence layer for TriageIQ.
 
-Three tables:
+Four tables:
   - workspaces: one row per business/tenant. Each workspace picks a
     business sector and profile at signup, with contact info and
     escalation settings.
   - tickets: every ticket belongs to exactly one workspace_id, so
     each business only ever sees its own data.
   - escalations: audit trail for every escalation notification attempt.
+  - admin_sessions: opaque bearer tokens issued on admin login, used by
+    the FastAPI admin router (Streamlit's admin dashboard doesn't need
+    these — it uses st.session_state directly).
 """
 
 import hashlib
 import hmac
 import os
+import secrets
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "triageiq.db"
@@ -94,6 +99,14 @@ CREATE TABLE IF NOT EXISTS escalations (
     recipient     TEXT,
     status        TEXT NOT NULL,
     detail        TEXT,
+    FOREIGN KEY (workspace_id) REFERENCES workspaces (id)
+);
+
+CREATE TABLE IF NOT EXISTS admin_sessions (
+    token         TEXT PRIMARY KEY,
+    workspace_id  INTEGER NOT NULL,
+    created_at    TEXT NOT NULL,
+    expires_at    TEXT NOT NULL,
     FOREIGN KEY (workspace_id) REFERENCES workspaces (id)
 );
 """
@@ -442,3 +455,54 @@ def get_escalations(workspace_id: int):
             "SELECT * FROM escalations WHERE workspace_id = ? ORDER BY id DESC",
             (workspace_id,),
         ).fetchall()
+
+
+# endregion
+
+# =============================================================================
+# region 7. ADMIN SESSION TRACKING
+# =============================================================================
+
+SESSION_TTL_HOURS = 24 * 7  # 1 week
+
+
+def create_session(workspace_id: int, ttl_hours: int = SESSION_TTL_HOURS) -> str:
+    """Issue a new opaque bearer token for a workspace. Returns the token."""
+    token = secrets.token_urlsafe(32)
+    now = datetime.now()
+    expires_at = now + timedelta(hours=ttl_hours)
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO admin_sessions (token, workspace_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+            (token, workspace_id, now.strftime("%Y-%m-%d %H:%M:%S"),
+             expires_at.strftime("%Y-%m-%d %H:%M:%S")),
+        )
+    return token
+
+
+def get_workspace_by_session(token: str):
+    """Return the workspace row for a valid, unexpired session token, else None."""
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT w.* FROM admin_sessions s
+            JOIN workspaces w ON w.id = s.workspace_id
+            WHERE s.token = ? AND datetime(s.expires_at) > datetime('now')
+            """,
+            (token,),
+        ).fetchone()
+
+
+def delete_session(token: str):
+    """Invalidate a single token (logout). No-op if it doesn't exist."""
+    with get_connection() as conn:
+        conn.execute("DELETE FROM admin_sessions WHERE token = ?", (token,))
+
+
+def delete_expired_sessions():
+    """Housekeeping — sweep out expired tokens. Cheap to call on every login."""
+    with get_connection() as conn:
+        conn.execute("DELETE FROM admin_sessions WHERE datetime(expires_at) <= datetime('now')")
+
+
+# endregion
