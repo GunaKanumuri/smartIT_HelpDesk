@@ -1,0 +1,40 @@
+/* ============================================
+   SevaKAI Design Tokens — Auth Section
+   Theme: Clean Dark with Accent (Verth-inspired)
+   ============================================ */
+
+[data-section="auth"],
+.auth-section {
+  --color-bg: #0A0E1A;
+  --color-bg-gradient: linear-gradient(135deg, #0A0E1A 0%, #0F1D2E 50%, #0A0E1A 100%);
+  --color-surface: #111827;
+  --color-surface-hover: #1F2937;
+
+  --color-accent: #0FA4AF;
+  --color-accent-light: #AFDDE5;
+  --color-accent-glow: rgba(15, 164, 175, 0.35);
+
+  --color-text: #E8E4DC;
+  --color-text-secondary: #9CA3AF;
+  --color-text-muted: #6B7280;
+  --color-text-heading: #FFFFFF;
+
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-focus: rgba(15, 164, 175, 0.5);
+
+  --color-error: #EF4444;
+  --color-error-bg: rgba(239, 68, 68, 0.1);
+  --color-success: #10B981;
+  --color-success-bg: rgba(16, 185, 129, 0.1);
+
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-input-focus: 0 0 0 3px rgba(15, 164, 175, 0.2);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
