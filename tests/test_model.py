@@ -9,12 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from utils.confidence import confidence_floor, is_out_of_scope
-from utils.profiles import PROFILES
-from utils.ticket_utils import classify_ticket, load_model
-from utils.urgency import score_urgency
+from backend.domain.confidence import confidence_floor, is_out_of_scope
+from backend.domain.profiles import PROFILES
+from backend.domain.ticket_utils import classify_ticket, load_model
+from backend.domain.urgency import score_urgency
 
-MODEL_DIR = Path("model/profiles")
+MODEL_DIR = Path("storage/models/profiles")
 
 pytestmark = pytest.mark.skipif(
     not all((MODEL_DIR / p / "ticket_classifier.pkl").exists() for p in PROFILES),

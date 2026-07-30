@@ -21,8 +21,8 @@ edge cases are handled correctly.
 
 import pytest
 
-from utils.relevance import check_relevance, count_keyword_matches
-from utils.sectors import has_emergency_keywords
+from backend.domain.relevance import check_relevance, count_keyword_matches
+from backend.domain.sectors import has_emergency_keywords
 
 # =============================================================================
 # region 1. RELEVANT MESSAGES — should pass through to ML classifier

@@ -4,7 +4,7 @@ tests/test_duplicates.py
 Pure-logic tests for utils/duplicates.py — no database involved.
 """
 
-from utils.duplicates import (
+from backend.domain.duplicates import (
     ESCALATE_AFTER_REPEATS,
     find_duplicate,
     normalize,

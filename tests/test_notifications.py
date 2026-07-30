@@ -7,7 +7,7 @@ sending is exercised implicitly by code review, not tested here — it
 would require live credentials.
 """
 
-from utils.notifications import send_escalation
+from backend.domain.notifications import send_escalation
 
 
 def test_send_escalation_not_configured_without_email():
