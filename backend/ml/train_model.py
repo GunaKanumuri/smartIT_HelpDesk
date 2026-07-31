@@ -105,9 +105,13 @@ def _train_tfidf_logreg(X_text, y, profile_dir: Path):
     # calibrate on the same full data (not ideal but acceptable for production-ready artifact)
     final_calibrated.fit(X, y)
 
-    # Persist vectorizer and calibrated classifier
-    joblib.dump(tfidf, profile_dir / "tfidf_vectorizer.pkl")
-    joblib.dump(final_calibrated, profile_dir / "ticket_classifier.pkl")
+    # Persist a single Pipeline that bundles vectorizer + classifier together
+    from sklearn.pipeline import Pipeline
+    pipeline = Pipeline([
+        ("tfidf", tfidf),
+        ("clf", final_calibrated),
+    ])
+    joblib.dump(pipeline, profile_dir / "ticket_classifier.pkl")
 
     return metrics
 
@@ -158,9 +162,13 @@ def _train_embeddings_logreg(X_text, y, profile_dir: Path, model_name: str = "al
     final_calibrated = CalibratedClassifierCV(final_base, cv="prefit")
     final_calibrated.fit(X_emb, y)
 
-    # Persist embedder and classifier
-    joblib.dump(embedder, profile_dir / "embedder.pkl")
-    joblib.dump(final_calibrated, profile_dir / "ticket_classifier.pkl")
+    # Persist a single Pipeline that bundles embedder + classifier together
+    from sklearn.pipeline import Pipeline
+    pipeline = Pipeline([
+        ("embedder", embedder),
+        ("clf", final_calibrated),
+    ])
+    joblib.dump(pipeline, profile_dir / "ticket_classifier.pkl")
 
     return metrics
 

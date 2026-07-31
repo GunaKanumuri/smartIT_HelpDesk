@@ -1,9 +1,13 @@
 """
-utils/ticket_utils.py
+backend/domain/ticket_utils.py
 
 Classification helper, aware of business profiles. Each profile (e.g.
 "it_support", "customer_support") has its own trained model under
-model/profiles/<profile>/ticket_classifier.pkl.
+storage/models/profiles/<profile>/ticket_classifier.pkl.
+
+The public entry point `classify_ticket` routes through the circuit-breaker
+runner (ml_runner) so a slow or crashing model can never hang the request
+thread. `_classify_local` is the pure inference used internally.
 """
 
 from pathlib import Path
@@ -30,17 +34,12 @@ def load_model(profile: str):
     return _model_cache[profile]
 
 
-def classify_ticket(text: str, profile: str, model=None):
-    """
-    Classify a ticket description using the given profile's model.
+def _classify_local(text: str, profile: str, model=None):
+    """Pure classification — no circuit breaker, no thread wrapper.
 
-    Returns a dict with the top category + confidence, the runner-up
-    category + confidence, and out-of-scope detection: if the top
-    confidence is too close to a random guess for this profile's number
-    of categories, `category` becomes "Needs Review" instead of a
-    confident-looking but likely-wrong label, and `out_of_scope` is True.
-    The model's actual top guess is preserved as `raw_category` either way,
-    so a human reviewing it isn't starting from nothing.
+    Returns a dict with category/confidence/raw_category. Used by
+    ml_runner (to break the circular import) and by callers that want
+    the raw result without fallback behaviour.
     """
     if model is None:
         model = load_model(profile)
@@ -65,3 +64,18 @@ def classify_ticket(text: str, profile: str, model=None):
         "out_of_scope": out_of_scope,
         "confidence_floor": confidence_floor(len(labels)),
     }
+
+
+# Try to import the circuit-breaker runner; if unavailable (shouldn't happen),
+# fall back to the pure local classifier.
+try:
+    from backend.domain.ml_runner import classify_with_fallback
+
+    def classify_ticket(text: str, profile: str, model=None):
+        """Classify with circuit-breaker + timeout protection."""
+        if model is None:
+            model = load_model(profile)
+        return classify_with_fallback(text, profile, model=model)
+
+except ImportError:
+    classify_ticket = _classify_local

@@ -1,17 +1,14 @@
-import sys
 import os
+import sys
 from datetime import datetime, timedelta
 
-from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.authentication import BaseAuthentication
 
 import jwt
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from backend.database import repository as db
 
@@ -19,42 +16,8 @@ JWT_SECRET = os.environ.get('JWT_SECRET', 'sevak-ai-jwt-secret-change-in-prod')
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRY_HOURS = 24
 
-
-class WorkspaceJWTAuthentication(BaseAuthentication):
-    """Custom JWT authentication that extracts workspace_id from the token."""
-
-    def authenticate(self, request):
-        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-        if not auth_header.lower().startswith('bearer '):
-            return None
-
-        token = auth_header.split(' ', 1)[1].strip()
-        if not token:
-            return None
-
-        try:
-            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Token expired.')
-        except jwt.InvalidTokenError:
-            raise AuthenticationFailed('Invalid token.')
-
-        workspace_id = payload.get('workspace_id')
-        if not workspace_id:
-            return None
-
-        workspace = db.get_workspace(workspace_id)
-        if not workspace:
-            return None
-
-        # Return a lightweight object that acts as the request.user
-        user = type('WorkspaceUser', (), {
-            'id': workspace_id,
-            'is_authenticated': True,
-            '__str__': lambda self: f'workspace:{workspace_id}',
-        })()
-
-        return (user, token)
+# In-memory token store for password resets
+_reset_tokens: dict[str, dict] = {}
 
 
 def _generate_token(workspace_id: int) -> str:
@@ -78,6 +41,7 @@ def _workspace_admin_info(workspace) -> dict:
         'business_description': workspace['business_description'] or '',
         'contact_phone': workspace['contact_phone'] or '',
         'contact_email': workspace['contact_email'] or '',
+        'ticket_prefix': workspace['ticket_prefix'] or '',
         'uses_custom_model': bool(workspace['uses_custom_model']),
         'escalation_email': workspace['escalation_email'],
     }
@@ -87,6 +51,7 @@ def _workspace_admin_info(workspace) -> dict:
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login(request):
     """POST /api/auth/login — authenticate workspace slug+password, return JWT."""
     slug = request.data.get('slug', '').strip()
@@ -110,12 +75,14 @@ def login(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def signup(request):
     """POST /api/auth/signup — create workspace + auto-login, return JWT."""
     slug = request.data.get('slug', '').strip()
     name = request.data.get('name', '').strip()
     profile = request.data.get('profile', '')
     password = request.data.get('password', '')
+    ticket_prefix = request.data.get('ticket_prefix', '')
 
     if not slug or not name or not password:
         return Response({'detail': 'Slug, name, and password are required.'}, status=400)
@@ -126,6 +93,7 @@ def signup(request):
             name=name,
             profile=profile,
             password=password,
+            ticket_prefix=ticket_prefix,
             sector=request.data.get('sector', 'other'),
             business_description=request.data.get('business_description', ''),
             contact_phone=request.data.get('contact_phone', ''),
@@ -165,6 +133,7 @@ def me(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def forgot_password(request):
     """POST /api/auth/forgot-password — request password reset."""
     email = request.data.get('email', '').strip().lower()
@@ -187,7 +156,6 @@ def forgot_password(request):
         reset_token = secrets.token_urlsafe(32)
         expires_at = datetime.utcnow() + timedelta(hours=1)
         # Store in-memory (same as FastAPI version)
-        from api.views import _reset_tokens  # shared store
         _reset_tokens[reset_token] = {
             'user_id': user['id'],
             'workspace_id': user['workspace_id'],
@@ -204,12 +172,11 @@ def forgot_password(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def reset_password(request):
     """POST /api/auth/reset-password — reset password using token."""
     token = request.data.get('token', '')
     new_password = request.data.get('password', '')
-
-    from api.views import _reset_tokens  # shared store
 
     token_data = _reset_tokens.get(token)
     if not token_data:

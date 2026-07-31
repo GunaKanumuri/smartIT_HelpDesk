@@ -43,6 +43,7 @@ class TicketUpdateSerializer(serializers.Serializer):
     action_taken = serializers.CharField(default='')
     updated_by = serializers.CharField(default='')
     reassigned_to = serializers.CharField(default='')
+    assigned_to_user_id = serializers.IntegerField(required=False, allow_null=True)
 
 
 class EscalationOutSerializer(serializers.ModelSerializer):

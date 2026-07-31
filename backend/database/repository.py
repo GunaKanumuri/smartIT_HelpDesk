@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
     password_salt         TEXT NOT NULL,
     uses_custom_model     INTEGER NOT NULL DEFAULT 0,
     escalation_email      TEXT,
+    ticket_prefix         TEXT DEFAULT '',
     created_at            TEXT NOT NULL
 );
 
@@ -89,9 +90,11 @@ CREATE TABLE IF NOT EXISTS tickets (
     action_taken        TEXT DEFAULT '',
     updated_by          TEXT DEFAULT '',
     reassigned_to       TEXT DEFAULT '',
+    assigned_to_user_id INTEGER,
     duplicate_count     INTEGER NOT NULL DEFAULT 0,
     last_duplicate_at   TEXT,
     FOREIGN KEY (workspace_id) REFERENCES workspaces (id),
+    FOREIGN KEY (assigned_to_user_id) REFERENCES workspace_users (id),
     UNIQUE (workspace_id, ticket_id)
 );
 
@@ -195,6 +198,9 @@ def _migrate(conn):
     if "contact_email" not in existing_cols:
         conn.execute("ALTER TABLE workspaces ADD COLUMN contact_email TEXT DEFAULT ''")
         conn.commit()
+    if "ticket_prefix" not in existing_cols:
+        conn.execute("ALTER TABLE workspaces ADD COLUMN ticket_prefix TEXT DEFAULT ''")
+        conn.commit()
 
     ticket_cols = {row["name"] for row in conn.execute("PRAGMA table_info(tickets)")}
     if "raw_category" not in ticket_cols:
@@ -208,6 +214,13 @@ def _migrate(conn):
         conn.commit()
     if "user_email" not in ticket_cols:
         conn.execute("ALTER TABLE tickets ADD COLUMN user_email TEXT DEFAULT ''")
+        conn.commit()
+    if "assigned_to_user_id" not in ticket_cols:
+        conn.execute("ALTER TABLE tickets ADD COLUMN assigned_to_user_id INTEGER")
+        conn.commit()
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_tickets_assigned ON tickets(workspace_id, assigned_to_user_id)"
+        )
         conn.commit()
 
     session_cols = {row["name"] for row in conn.execute("PRAGMA table_info(admin_sessions)")}
@@ -277,6 +290,7 @@ def create_workspace(
     business_description: str = "",
     contact_phone: str = "",
     contact_email: str = "",
+    ticket_prefix: str = "",
 ) -> int:
     """Create a workspace and its initial owner account.
 
@@ -286,22 +300,31 @@ def create_workspace(
     """
     password_hash, salt = _hash_password(password)
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ticket_prefix = ticket_prefix.upper().strip()[:3]
+    if ticket_prefix and not ticket_prefix.isalnum():
+        raise ValueError("Ticket prefix must be alphanumeric (3 letters/numbers).")
     with get_connection() as conn:
         existing = conn.execute(
             "SELECT id FROM workspaces WHERE slug = ?", (slug,)
         ).fetchone()
         if existing:
             raise ValueError(f"Workspace slug '{slug}' is already taken.")
+        if ticket_prefix:
+            existing_prefix = conn.execute(
+                "SELECT id FROM workspaces WHERE ticket_prefix = ?", (ticket_prefix,)
+            ).fetchone()
+            if existing_prefix:
+                raise ValueError(f"Ticket prefix '{ticket_prefix}' is already taken.")
         cursor = conn.execute(
             """
             INSERT INTO workspaces (
                 slug, name, profile, sector, business_description,
                 contact_phone, contact_email,
-                password_hash, password_salt, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                password_hash, password_salt, ticket_prefix, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (slug, name, profile, sector, business_description,
-             contact_phone, contact_email, password_hash, salt, now),
+             contact_phone, contact_email, password_hash, salt, ticket_prefix, now),
         )
         workspace_id = cursor.lastrowid
         owner_email = (contact_email or "").strip().lower() or f"owner@{slug}.local"
@@ -516,10 +539,34 @@ def set_workspace_user_active(
 # region 5. TICKET CRUD
 # =============================================================================
 def _next_ticket_id(conn, workspace_id: int) -> str:
+    """Generate the next ticket id for a workspace.
+
+    Workspaces with a ticket_prefix get PREFIX-0001, PREFIX-0002, ...
+    Workspaces without one get TCK1001, TCK1002, ...
+    """
+    # What prefix does this workspace use?
+    ws = conn.execute(
+        "SELECT ticket_prefix FROM workspaces WHERE id = ?", (workspace_id,)
+    ).fetchone()
+    prefix = (ws["ticket_prefix"] or "").strip().upper() if ws else ""
+
+    # Most recent ticket for this workspace (drives the increment)
     row = conn.execute(
         "SELECT ticket_id FROM tickets WHERE workspace_id = ? ORDER BY id DESC LIMIT 1",
         (workspace_id,),
     ).fetchone()
+
+    if prefix:
+        # PREFIX-XXXX format
+        if row is None:
+            return f"{prefix}-0001"
+        # Extract the numeric suffix after the last dash (handles both
+        # "ACM-0001" and legacy "TCK1001" rows in a prefixed workspace).
+        last_number = int(row["ticket_id"].rsplit("-", 1)[-1]) \
+            if "-" in row["ticket_id"] else int(row["ticket_id"].replace(prefix, ""))
+        return f"{prefix}-{last_number + 1:04d}"
+
+    # No prefix -> legacy TCKXXXX format
     if row is None:
         return "TCK1001"
     last_number = int(row["ticket_id"].replace("TCK", ""))
@@ -537,6 +584,7 @@ def insert_ticket(
     secondary_confidence: float = None,
     raw_category: str = None,
     user_email: str = "",
+    assigned_to_user_id: int = None,
 ) -> str:
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with get_connection() as conn:
@@ -547,24 +595,29 @@ def insert_ticket(
                 workspace_id, ticket_id, created_at, updated_at, user_id,
                 user_email, issue_description, category, confidence,
                 secondary_category, secondary_confidence, raw_category,
-                urgency, status, action_taken, updated_by, reassigned_to
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Open', '', '', '')
+                urgency, status, action_taken, updated_by, reassigned_to,
+                assigned_to_user_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Open', '', '', '', ?)
             """,
             (
                 workspace_id, ticket_id, now, now, user_id, user_email,
                 issue_description, category, confidence, secondary_category,
-                secondary_confidence, raw_category, urgency,
+                secondary_confidence, raw_category, urgency, assigned_to_user_id,
             ),
         )
     return ticket_id
 
 
-def get_all_tickets(workspace_id: int):
+def get_all_tickets(workspace_id: int, assigned_to_user_id: int = None):
+    """All tickets for a workspace, optionally filtered to one agent."""
+    query = "SELECT * FROM tickets WHERE workspace_id = ?"
+    params: tuple = (workspace_id,)
+    if assigned_to_user_id is not None:
+        query += " AND assigned_to_user_id = ?"
+        params += (assigned_to_user_id,)
+    query += " ORDER BY id DESC"
     with get_connection() as conn:
-        return conn.execute(
-            "SELECT * FROM tickets WHERE workspace_id = ? ORDER BY id DESC",
-            (workspace_id,),
-        ).fetchall()
+        return conn.execute(query, params).fetchall()
 
 
 def get_ticket(workspace_id: int, ticket_id: str):
@@ -576,7 +629,7 @@ def get_ticket(workspace_id: int, ticket_id: str):
 
 
 def update_ticket(workspace_id: int, ticket_id: str, status: str, action_taken: str,
-                   updated_by: str, reassigned_to: str):
+                   updated_by: str, reassigned_to: str, assigned_to_user_id: int = None):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with get_connection() as conn:
         if status == "Closed":
@@ -591,21 +644,23 @@ def update_ticket(workspace_id: int, ticket_id: str, status: str, action_taken: 
                 """
                 UPDATE tickets
                 SET status = ?, action_taken = ?, updated_by = ?,
-                    reassigned_to = ?, updated_at = ?, resolved_at = ?
+                    reassigned_to = ?, assigned_to_user_id = ?,
+                    updated_at = ?, resolved_at = ?
                 WHERE workspace_id = ? AND ticket_id = ?
                 """,
-                (status, action_taken, updated_by, reassigned_to, now, resolved_at,
-                 workspace_id, ticket_id),
+                (status, action_taken, updated_by, reassigned_to, assigned_to_user_id,
+                 now, resolved_at, workspace_id, ticket_id),
             )
         else:
             conn.execute(
                 """
                 UPDATE tickets
                 SET status = ?, action_taken = ?, updated_by = ?,
-                    reassigned_to = ?, updated_at = ?
+                    reassigned_to = ?, assigned_to_user_id = ?, updated_at = ?
                 WHERE workspace_id = ? AND ticket_id = ?
                 """,
-                (status, action_taken, updated_by, reassigned_to, now, workspace_id, ticket_id),
+                (status, action_taken, updated_by, reassigned_to, assigned_to_user_id,
+                 now, workspace_id, ticket_id),
             )
 
 
