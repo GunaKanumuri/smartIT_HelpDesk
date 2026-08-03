@@ -80,7 +80,13 @@ def admin_tickets(request, ticket_id=None):
 
     if request.method == 'GET':
         from backend.services.admin_operations import list_tickets
-        rows = list_tickets(w.id)
+        # Optional ?mine=1 — filter to tickets assigned to the logged-in user
+        mine = request.query_params.get('mine', '')
+        if mine in ('1', 'true'):
+            user_id = getattr(request.user, 'user_id', None)
+            rows = db.get_all_tickets(w.id, assigned_to_user_id=user_id)
+        else:
+            rows = list_tickets(w.id)
         return Response([dict(r) for r in rows])
 
     if request.method == 'PATCH':
@@ -233,6 +239,18 @@ def admin_team_member(request, user_id):
     except ValueError as e:
         return Response({'detail': str(e)}, status=400)
     return Response({'success': True})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def admin_logout_all(request):
+    """POST /api/admin/logout-all — revoke all active sessions for this workspace.
+    Use after a suspected compromise or when an employee leaves."""
+    w = _get_workspace_from_request(request)
+    if not w:
+        return Response({'detail': 'Workspace not found.'}, status=404)
+    db.revoke_all_sessions(w.id)
+    return Response({'success': True, 'message': 'All sessions revoked.'})
 
 
 # ─── Dashboard Stats ─────────────────────────────────────────────────────────

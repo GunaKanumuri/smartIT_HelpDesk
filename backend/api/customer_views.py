@@ -13,6 +13,7 @@ from api.models import Workspace
 from api.serializers import WorkspaceInfoSerializer
 from backend.database import repository as db
 from backend.services.ticket_pipeline import submit_ticket
+from backend.domain.sectors import get_sector_name
 
 
 def _workspace_dict(w):
@@ -107,4 +108,6 @@ def get_ticket_status(request, slug, ticket_id):
         'urgency': ticket['urgency'],
         'created_at': ticket['created_at'],
         'workspace_name': w.name,
+        'sector': w.sector,
+        'sector_name': get_sector_name(w.sector),
     })

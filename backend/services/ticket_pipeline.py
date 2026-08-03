@@ -77,9 +77,7 @@ def submit_ticket(workspace: dict, message: str, user_id: str = "guest", user_em
     # 2. ML classification — raises FileNotFoundError/AttributeError on model
     #    trouble; that's the caller's problem to present, not ours to swallow.
     model, categories, accuracy, model_label, is_custom = resolve_active_model(workspace)
-    # Fall back to sector if profile is empty (new signups don't set profile)
-    profile = workspace.get("profile") or workspace.get("sector", "other")
-    result = classify_ticket(message, profile=profile, model=model)
+    result = classify_ticket(message, profile=workspace["profile"], model=model)
 
     # 3. Urgency scoring
     urgency = score_urgency(message, result["confidence"])

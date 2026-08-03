@@ -63,7 +63,6 @@ def update_ticket(
     action_taken: str = "",
     updated_by: str = "",
     reassigned_to: str = "",
-    assigned_to_user_id: int | None = None,
 ):
     """Updates a ticket and returns the refreshed row, or None if it doesn't exist
     in this workspace — callers decide how to surface that (404 vs. st.error)."""
@@ -78,7 +77,6 @@ def update_ticket(
         action_taken=action_taken,
         updated_by=updated_by,
         reassigned_to=reassigned_to,
-        assigned_to_user_id=assigned_to_user_id,
     )
     return db.get_ticket(workspace_id, ticket_id)
 

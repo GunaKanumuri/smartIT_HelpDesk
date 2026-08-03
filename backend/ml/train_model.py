@@ -21,7 +21,7 @@ Features:
 import argparse
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import joblib
@@ -105,13 +105,9 @@ def _train_tfidf_logreg(X_text, y, profile_dir: Path):
     # calibrate on the same full data (not ideal but acceptable for production-ready artifact)
     final_calibrated.fit(X, y)
 
-    # Persist a single Pipeline that bundles vectorizer + classifier together
-    from sklearn.pipeline import Pipeline
-    pipeline = Pipeline([
-        ("tfidf", tfidf),
-        ("clf", final_calibrated),
-    ])
-    joblib.dump(pipeline, profile_dir / "ticket_classifier.pkl")
+    # Persist vectorizer and calibrated classifier
+    joblib.dump(tfidf, profile_dir / "tfidf_vectorizer.pkl")
+    joblib.dump(final_calibrated, profile_dir / "ticket_classifier.pkl")
 
     return metrics
 
@@ -162,13 +158,9 @@ def _train_embeddings_logreg(X_text, y, profile_dir: Path, model_name: str = "al
     final_calibrated = CalibratedClassifierCV(final_base, cv="prefit")
     final_calibrated.fit(X_emb, y)
 
-    # Persist a single Pipeline that bundles embedder + classifier together
-    from sklearn.pipeline import Pipeline
-    pipeline = Pipeline([
-        ("embedder", embedder),
-        ("clf", final_calibrated),
-    ])
-    joblib.dump(pipeline, profile_dir / "ticket_classifier.pkl")
+    # Persist embedder and classifier
+    joblib.dump(embedder, profile_dir / "embedder.pkl")
+    joblib.dump(final_calibrated, profile_dir / "ticket_classifier.pkl")
 
     return metrics
 
@@ -201,7 +193,7 @@ def train_profile(profile_id: str, use_embeddings: bool = False, embedder_model:
         "profile": profile_id,
         "display_name": PROFILES.get(profile_id, profile_id),
         "n_samples": n_samples,
-        "trained_at": datetime.utcnow().isoformat() + "Z",
+        "trained_at": datetime.now(timezone.utc).isoformat(),
         "training_method": "embeddings" if use_embeddings else "tfidf",
     }
     metadata.update(metrics)

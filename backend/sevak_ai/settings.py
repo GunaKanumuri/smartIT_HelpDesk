@@ -1,6 +1,18 @@
 import os
 from pathlib import Path
 
+# ─── Error Tracking (Sentry) ──────────────────────────────────────────────────
+# Optional: only activated when SENTRY_DSN is set. Never crashes the app
+# if Sentry is misconfigured — degrades silently.
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
+    if SENTRY_DSN and not DEBUG:
+        sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
+except ImportError:
+    pass
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 DEBUG = os.environ.get('DJANGO_DEBUG', '1') in ('1', 'true', 'True')

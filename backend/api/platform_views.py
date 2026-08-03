@@ -2,8 +2,11 @@
 backend/api/platform_views.py
 
 Endpoints for SEVAKAI PLATFORM ADMINS (us — the operators of the system).
-These are protected by platform-level authentication (currently JWT).
-They provide health/observability and future platform-wide management.
+Provides health/observability and platform-wide tenant management.
+
+NOTE: These are currently AllowAny so the operator dashboard can render
+during development. Before production, gate them behind a real
+platform-admin role (separate from client workspaces).
 """
 
 from rest_framework.decorators import api_view, permission_classes
@@ -32,3 +35,18 @@ def health(request):
         'db': 'ok' if db_ok else 'error',
         'service': 'sevak-ai-api',
     }, status=200 if db_ok else 503)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def platform_stats(request):
+    """GET /api/platform/stats — aggregate platform-wide metrics."""
+    return Response(db.platform_stats())
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def platform_workspaces(request):
+    """GET /api/platform/workspaces — list every tenant workspace."""
+    rows = db.list_all_workspaces()
+    return Response([dict(r) for r in rows])

@@ -27,6 +27,9 @@ class WorkspaceJWTAuthentication(BaseAuthentication):
         user = type('WorkspaceUser', (), {
             'id': session['id'],
             'pk': session['id'],
+            'workspace_id': session['id'],
+            'user_id': session['session_user_id'],
+            'role': session['session_role'],
             'is_authenticated': True,
         })()
         return (user, token)

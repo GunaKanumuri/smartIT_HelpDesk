@@ -5,8 +5,10 @@ from api import client_views as cviews
 from api import customer_views as uviews
 
 urlpatterns = [
-    # ── Platform: health / observability ──
+    # ── Platform: health / observability / tenant management ──
     path('health', pviews.health),
+    path('platform/stats', pviews.platform_stats),
+    path('platform/workspaces', pviews.platform_workspaces),
 
     # ── Customer (public, unauthenticated): workspace info, ticket submit/track ──
     path('workspace/<str:slug>', uviews.get_workspace_info),
@@ -25,5 +27,6 @@ urlpatterns = [
     path('admin/team', cviews.admin_team_list),
     path('admin/team/add', cviews.admin_team_add),
     re_path(r'^admin/team/(?P<user_id>\d+)$', cviews.admin_team_member),
+    path('admin/logout-all', cviews.admin_logout_all),
     path('admin/stats', cviews.admin_stats),
 ]

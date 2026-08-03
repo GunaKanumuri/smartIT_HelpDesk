@@ -18,9 +18,7 @@ def resolve_active_model(workspace: dict):
     Raises FileNotFoundError if neither a custom nor preset model is available.
     """
     slug = workspace["slug"]
-    profile = workspace.get("profile") or workspace.get("sector", "customer_support")
-    if profile not in ["it_support", "customer_support"]:
-        profile = "customer_support"  # fallback to general support if sector model not trained yet
+    profile = workspace["profile"]
 
     if workspace.get("uses_custom_model") and has_custom_model(slug):
         model = load_custom_model(slug)
@@ -30,7 +28,7 @@ def resolve_active_model(workspace: dict):
         label = f"Custom-trained model ({metrics.get('n_samples', '?')} examples)"
         return model, categories, accuracy, label, True
 
-    model = load_model(profile)  # raises FileNotFoundError if missing
+    model = load_model(profile)  # raises FileNotFoundError if missing — caller handles it
     categories = get_categories(profile)
     accuracy = get_accuracy(profile)
     label = PROFILES.get(profile, profile)

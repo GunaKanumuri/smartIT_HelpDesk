@@ -18,9 +18,6 @@ explanation, rather than pretending to have sent something. This is a
 real, working code path for production (any SMTP provider — Gmail,
 SendGrid, etc. — via env vars); it's just not wired to real credentials
 in this environment.
-
-Set EMAIL_ENABLED=0 (or omit the SMTP env vars) to keep email inactive
-during development. Set EMAIL_ENABLED=1 with SMTP credentials to enable.
 """
 
 import os
@@ -37,10 +34,6 @@ SMTP_ENV_VARS = (
 
 
 def _smtp_configured() -> bool:
-    """True only when email is explicitly enabled AND SMTP env vars are set."""
-    enabled = os.environ.get("EMAIL_ENABLED", "0")
-    if enabled not in ("1", "true", "True"):
-        return False
     return all(os.environ.get(var) for var in SMTP_ENV_VARS)
 
 
