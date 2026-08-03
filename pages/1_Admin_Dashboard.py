@@ -41,20 +41,9 @@ import io
 import pandas as pd
 import streamlit as st
 
-from db.database import (
-    get_all_tickets,
-    get_escalations,
-    init_db,
-    set_escalation_email,
-    set_uses_custom_model,
-    update_ticket,
-)
-from utils.custom_training import (
-    get_custom_metrics,
-    has_custom_model,
-    train_custom_model,
-    validate_training_data,
-)
+from db.database import init_db
+from services import admin_operations as admin_ops
+from utils.custom_training import validate_training_data
 from utils.knowledge_base import get_suggested_reply
 from utils.profiles import PROFILES
 from utils.sectors import get_sector_name
@@ -83,7 +72,7 @@ tab_tickets, tab_analytics, tab_escalations, tab_integration, tab_train = st.tab
     ["🎟️ Tickets", "📊 Analytics", "🔔 Escalations", "🔗 Integration", "🎓 Train on Your Data"]
 )
 
-rows = get_all_tickets(workspace["id"])
+rows = admin_ops.list_tickets(workspace["id"])
 df = pd.DataFrame([dict(r) for r in rows]) if rows else pd.DataFrame()
 
 # endregion
@@ -179,7 +168,7 @@ with tab_tickets:
             reassigned_to = st.selectbox("Reassigned To (if any)", [""] + df["category"].unique().tolist())
 
             if st.button("💾 Save Update"):
-                update_ticket(
+                updated = admin_ops.update_ticket(
                     workspace_id=workspace["id"],
                     ticket_id=selected_ticket,
                     status=status,
@@ -187,8 +176,11 @@ with tab_tickets:
                     updated_by=updated_by,
                     reassigned_to=reassigned_to,
                 )
-                st.success("Ticket updated successfully!")
-                st.rerun()
+                if updated:
+                    st.success("Ticket updated successfully!")
+                    st.rerun()
+                else:
+                    st.error(f"Ticket '{selected_ticket}' not found.")
 
 # endregion
 
@@ -206,7 +198,7 @@ with tab_escalations:
     current_email = workspace.get("escalation_email") or ""
     new_email = st.text_input("Escalation email", value=current_email, key="escalation_email_input")
     if st.button("Save escalation email"):
-        set_escalation_email(workspace["id"], new_email.strip() or None)
+        admin_ops.set_escalation_email(workspace["id"], new_email.strip() or None)
         workspace["escalation_email"] = new_email.strip() or None
         st.session_state["workspace"] = workspace
         st.success("Saved.")
@@ -220,7 +212,7 @@ with tab_escalations:
 
     st.divider()
     st.subheader("Recent Escalations")
-    escalation_rows = get_escalations(workspace["id"])
+    escalation_rows = admin_ops.list_escalations(workspace["id"])
     if not escalation_rows:
         st.info("No escalations yet — they'll show up here once a High-urgency ticket comes in.")
     else:
@@ -380,7 +372,8 @@ with tab_train:
     )
 
     slug = workspace["slug"]
-    existing_metrics = get_custom_metrics(slug)
+    model_info = admin_ops.get_model_info(workspace)
+    existing_metrics = model_info["custom_metrics"]
 
     if existing_metrics:
         st.success(
@@ -398,14 +391,14 @@ with tab_train:
                 st.info("🟢 This custom model is currently active for your workspace.")
             else:
                 if st.button("Switch to my custom model"):
-                    set_uses_custom_model(workspace["id"], True)
+                    admin_ops.set_model_active(workspace["id"], slug, True)
                     workspace["uses_custom_model"] = True
                     st.session_state["workspace"] = workspace
                     st.rerun()
         with col_toggle2:
             if currently_active:
                 if st.button("Revert to preset model"):
-                    set_uses_custom_model(workspace["id"], False)
+                    admin_ops.set_model_active(workspace["id"], slug, False)
                     workspace["uses_custom_model"] = False
                     st.session_state["workspace"] = workspace
                     st.rerun()
@@ -440,7 +433,7 @@ with tab_train:
                 st.success(message)
                 if st.button("🚀 Train model on this data", type="primary"):
                     with st.spinner("Training..."):
-                        metrics = train_custom_model(slug, upload_df)
+                        _, _, metrics = admin_ops.train_model(slug, upload_df)
                     st.success(
                         f"Trained! Accuracy: {metrics['test_accuracy']:.0%} "
                         f"(evaluated on {metrics['evaluation_method']})"
