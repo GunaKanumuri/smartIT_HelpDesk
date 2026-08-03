@@ -5,13 +5,21 @@ __pycache__/
 venv/
 
 # Local database (generated at runtime)
-data/triageiq.db
+storage/database/sevak_ai.db
+storage/database/sevak_ai.sqlite3
 
-# Generated model metrics (regenerate with model/train_model.py,
-# or remove this line if you'd rather commit them)
-model/profiles/*/metrics.json
+# Generated model metrics (regenerate with model/train_model.py)
+storage/models/profiles/*/metrics.json
 
-# Custom per-workspace training data and models — this can be a real
-# customer's own uploaded messages, never commit it
-data/custom/
-model/custom/
+# Custom per-workspace training data and models
+storage/datasets/custom/
+storage/models/custom/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Environment
+.env.local
+*.env

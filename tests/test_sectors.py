@@ -19,7 +19,7 @@ have required keys, and helper functions work correctly.
 
 import pytest
 
-from utils.sectors import (
+from backend.domain.sectors import (
     SECTORS,
     get_default_categories,
     get_sector,

@@ -1,148 +1,44 @@
+"""
+backend/api/client_views.py
+
+Endpoints for CLIENT ADMINS & STAFF (workspace owners and their team).
+These are protected by WorkspaceJWTAuthentication and scoped to the
+logged-in workspace only — no client can ever see another's data.
+"""
+
 import io
-import os
-import sys
-
 import pandas as pd
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
+from rest_framework.response import Response
 
-# Ensure we can import from the project root
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-
-from api.models import Workspace, Ticket, Escalation, WorkspaceUser
+from api.models import Workspace
 from api.serializers import (
-    WorkspaceInfoSerializer, TicketStatusSerializer,
-    TicketOutSerializer, TicketUpdateSerializer,
-    EscalationOutSerializer, ModelInfoSerializer,
-    TrainMetricsSerializer, DashboardStatsSerializer,
-    TeamUserOutSerializer, AddTeamMemberSerializer,
-    UpdateTeamMemberSerializer,
-    WorkspaceAdminInfoSerializer,
+    TicketUpdateSerializer, AddTeamMemberSerializer, UpdateTeamMemberSerializer,
 )
 from backend.database import repository as db
-from backend.services.ticket_pipeline import submit_ticket
-from backend.domain.sectors import get_sector_name
 
 
-# ─── Helper ────────────────────────────────────────────────────────────────
+def _get_workspace_from_request(request):
+    """Extract the workspace for the currently authenticated user."""
+    workspace_id = request.user.id
+    return Workspace.objects.filter(id=workspace_id).first()
 
 
 def _workspace_dict(w):
-    """Convert a Django Workspace model instance to the dict format
-    that backend.services.ticket_pipeline and admin_operations expect."""
     return {
-        'id': w.id,
-        'slug': w.slug,
-        'name': w.name,
-        'profile': w.profile,
-        'sector': w.sector,
-        'uses_custom_model': bool(w.uses_custom_model),
+        'id': w.id, 'slug': w.slug, 'name': w.name, 'profile': w.profile,
+        'sector': w.sector, 'uses_custom_model': bool(w.uses_custom_model),
         'escalation_email': w.escalation_email,
     }
 
 
-def _get_workspace_from_request(request):
-    """Extract workspace from JWT token workspace_id claim."""
-    workspace_id = request.user.id  # workspace_id stored as the user id in JWT
-    w = Workspace.objects.filter(id=workspace_id).first()
-    if not w:
-        return None
-    return w
-
-
-# ─── Public Endpoints (no auth) ────────────────────────────────────────────
-
-
-@api_view(['GET'])
-def get_workspace_info(request, slug):
-    """GET /api/workspace/{slug} — public workspace info."""
-    w = Workspace.objects.filter(slug=slug).first()
-    if not w:
-        return Response({'detail': f"Workspace '{slug}' not found."}, status=404)
-    ser = WorkspaceInfoSerializer(w)
-    return Response(ser.data)
-
-
-@api_view(['POST'])
-def submit_ticket_endpoint(request):
-    """POST /api/submit — public ticket submission."""
-    workspace_slug = request.data.get('workspace')
-    w = Workspace.objects.filter(slug=workspace_slug).first()
-    if not w:
-        return Response({'detail': f"Workspace '{workspace_slug}' not found."}, status=404)
-
-    try:
-        result = submit_ticket(
-            workspace=_workspace_dict(w),
-            message=request.data.get('message', ''),
-            user_id=request.data.get('name', 'guest'),
-            user_email=request.data.get('email', ''),
-        )
-    except (FileNotFoundError, AttributeError) as e:
-        return Response({'detail': f'Classification failed: {e}'}, status=500)
-
-    if result['outcome'] == 'irrelevant':
-        relevance = result['relevance']
-        return Response({
-            'success': False, 'relevant': False,
-            'message': relevance['response'],
-            'emergency': relevance.get('emergency', False),
-            'emergency_text': relevance.get('emergency_text'),
-        })
-
-    if result['outcome'] == 'duplicate':
-        return Response({
-            'success': True, 'duplicate': True,
-            'existing_ticket_id': result['ticket_id'],
-            'category': result['category'],
-            'urgency': result['urgency'],
-            'message': f"This matches an existing ticket {result['ticket_id']} — "
-                       f"we've noted you've mentioned it {result['duplicate_count']}x.",
-        })
-
-    return Response({
-        'success': True,
-        'ticket_id': result['ticket_id'],
-        'category': result['category'],
-        'urgency': result['urgency'],
-        'message': f"Your issue has been logged. Ticket ID: {result['ticket_id']}",
-    })
-
-
-@api_view(['GET'])
-def get_ticket_status(request, slug, ticket_id):
-    """GET /api/status/{slug}/{ticket_id} — public ticket status."""
-    w = Workspace.objects.filter(slug=slug).first()
-    if not w:
-        return Response({'detail': f"Workspace '{slug}' not found."}, status=404)
-
-    ticket = db.get_ticket(w.id, ticket_id)
-    if not ticket:
-        return Response(
-            {'detail': f"Ticket '{ticket_id}' not found in workspace '{slug}'."},
-            status=404,
-        )
-
-    return Response({
-        'ticket_id': ticket['ticket_id'],
-        'status': ticket['status'],
-        'category': ticket['category'],
-        'urgency': ticket['urgency'],
-        'created_at': ticket['created_at'],
-        'workspace_name': w.name,
-    })
-
-
-# ─── Admin Endpoints (JWT required) ────────────────────────────────────────
-
+# ─── Workspace Settings ──────────────────────────────────────────────────────
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def admin_me(request):
-    """GET /api/admin/me — rehydrate session."""
+    """GET /api/admin/me — rehydrate the logged-in workspace session."""
     w = _get_workspace_from_request(request)
     if not w:
         return Response({'detail': 'Workspace not found.'}, status=404)
@@ -152,15 +48,31 @@ def admin_me(request):
         'business_description': w.business_description or '',
         'contact_phone': w.contact_phone or '',
         'contact_email': w.contact_email or '',
+        'ticket_prefix': w.ticket_prefix or '',
         'uses_custom_model': bool(w.uses_custom_model),
         'escalation_email': w.escalation_email,
     })
 
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def admin_escalation_email(request):
+    """PUT /api/admin/escalation-email — set escalation notification email."""
+    w = _get_workspace_from_request(request)
+    if not w:
+        return Response({'detail': 'Workspace not found.'}, status=404)
+    email = request.data.get('email')
+    from backend.services.admin_operations import set_escalation_email
+    email = set_escalation_email(w.id, email)
+    return Response({'success': True, 'escalation_email': email})
+
+
+# ─── Ticket Management ───────────────────────────────────────────────────────
+
 @api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def admin_tickets(request, ticket_id=None):
-    """GET /api/admin/tickets — list all tickets.
+    """GET /api/admin/tickets — list all tickets in workspace.
        PATCH /api/admin/tickets/{ticket_id} — update a ticket."""
     w = _get_workspace_from_request(request)
     if not w:
@@ -168,7 +80,13 @@ def admin_tickets(request, ticket_id=None):
 
     if request.method == 'GET':
         from backend.services.admin_operations import list_tickets
-        rows = list_tickets(w.id)
+        # Optional ?mine=1 — filter to tickets assigned to the logged-in user
+        mine = request.query_params.get('mine', '')
+        if mine in ('1', 'true'):
+            user_id = getattr(request.user, 'user_id', None)
+            rows = db.get_all_tickets(w.id, assigned_to_user_id=user_id)
+        else:
+            rows = list_tickets(w.id)
         return Response([dict(r) for r in rows])
 
     if request.method == 'PATCH':
@@ -184,10 +102,12 @@ def admin_tickets(request, ticket_id=None):
         return Response(dict(updated))
 
 
+# ─── Escalation History ──────────────────────────────────────────────────────
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def admin_escalations(request):
-    """GET /api/admin/escalations — escalation history."""
+    """GET /api/admin/escalations — escalation audit trail for workspace."""
     w = _get_workspace_from_request(request)
     if not w:
         return Response({'detail': 'Workspace not found.'}, status=404)
@@ -196,23 +116,12 @@ def admin_escalations(request):
     return Response([dict(r) for r in rows])
 
 
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def admin_escalation_email(request):
-    """PUT /api/admin/escalation-email — set escalation email."""
-    w = _get_workspace_from_request(request)
-    if not w:
-        return Response({'detail': 'Workspace not found.'}, status=404)
-    email = request.data.get('email')
-    from backend.services.admin_operations import set_escalation_email
-    email = set_escalation_email(w.id, email)
-    return Response({'success': True, 'escalation_email': email})
-
+# ─── ML Model Management ─────────────────────────────────────────────────────
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def admin_model_info(request):
-    """GET /api/admin/model — model info."""
+    """GET /api/admin/model — info about the active classification model."""
     w = _get_workspace_from_request(request)
     if not w:
         return Response({'detail': 'Workspace not found.'}, status=404)
@@ -224,7 +133,7 @@ def admin_model_info(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def admin_model_active(request):
-    """PUT /api/admin/model/active — toggle active model."""
+    """PUT /api/admin/model/active — toggle between preset and custom model."""
     w = _get_workspace_from_request(request)
     if not w:
         return Response({'detail': 'Workspace not found.'}, status=404)
@@ -240,7 +149,7 @@ def admin_model_active(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def admin_train_model(request):
-    """POST /api/admin/train — upload CSV and train model."""
+    """POST /api/admin/train — upload CSV and train a custom model."""
     w = _get_workspace_from_request(request)
     if not w:
         return Response({'detail': 'Workspace not found.'}, status=404)
@@ -262,10 +171,12 @@ def admin_train_model(request):
     return Response(metrics)
 
 
+# ─── Team Management ─────────────────────────────────────────────────────────
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def admin_team_list(request):
-    """GET /api/admin/team — list team members."""
+    """GET /api/admin/team — list team members in workspace."""
     w = _get_workspace_from_request(request)
     if not w:
         return Response({'detail': 'Workspace not found.'}, status=404)
@@ -276,7 +187,7 @@ def admin_team_list(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def admin_team_add(request):
-    """POST /api/admin/team — add team member."""
+    """POST /api/admin/team — add a new team member."""
     w = _get_workspace_from_request(request)
     if not w:
         return Response({'detail': 'Workspace not found.'}, status=404)
@@ -330,10 +241,24 @@ def admin_team_member(request, user_id):
     return Response({'success': True})
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def admin_logout_all(request):
+    """POST /api/admin/logout-all — revoke all active sessions for this workspace.
+    Use after a suspected compromise or when an employee leaves."""
+    w = _get_workspace_from_request(request)
+    if not w:
+        return Response({'detail': 'Workspace not found.'}, status=404)
+    db.revoke_all_sessions(w.id)
+    return Response({'success': True, 'message': 'All sessions revoked.'})
+
+
+# ─── Dashboard Stats ─────────────────────────────────────────────────────────
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def admin_stats(request):
-    """GET /api/admin/stats — dashboard statistics."""
+    """GET /api/admin/stats — dashboard statistics for workspace."""
     w = _get_workspace_from_request(request)
     if not w:
         return Response({'detail': 'Workspace not found.'}, status=404)

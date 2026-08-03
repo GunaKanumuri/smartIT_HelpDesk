@@ -1,15 +1,33 @@
 import os
 from pathlib import Path
 
+# ─── Error Tracking (Sentry) ──────────────────────────────────────────────────
+# Optional: only activated when SENTRY_DSN is set. Never crashes the app
+# if Sentry is misconfigured — degrades silently.
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
+    if SENTRY_DSN and not DEBUG:
+        sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
+except ImportError:
+    pass
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = 'django-insecure-sevak-ai-secret-key-change-in-production'
+DEBUG = os.environ.get('DJANGO_DEBUG', '1') in ('1', 'true', 'True')
 
-DEBUG = True
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-sevak-ai-secret-key-change-in-production'
+    else:
+        raise ValueError("DJANGO_SECRET_KEY environment variable is required in production.")
 
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -57,6 +75,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'storage' / 'database' / 'sevak_ai.db',
+        'CONN_MAX_AGE': 60,
     }
 }
 
@@ -73,11 +92,23 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'accounts.views.WorkspaceJWTAuthentication',
+        'accounts.authentication.WorkspaceJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_PAGINATION_CLASS': (
+        'rest_framework.pagination.PageNumberPagination',
+    ),
+    'PAGE_SIZE': 50,
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '1000/day',
+        'user': '10000/day',
+    },
 }
 
 CORS_ALLOW_ALL_ORIGINS = True

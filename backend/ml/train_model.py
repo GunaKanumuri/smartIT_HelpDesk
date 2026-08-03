@@ -21,7 +21,7 @@ Features:
 import argparse
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import joblib
@@ -193,7 +193,7 @@ def train_profile(profile_id: str, use_embeddings: bool = False, embedder_model:
         "profile": profile_id,
         "display_name": PROFILES.get(profile_id, profile_id),
         "n_samples": n_samples,
-        "trained_at": datetime.utcnow().isoformat() + "Z",
+        "trained_at": datetime.now(timezone.utc).isoformat(),
         "training_method": "embeddings" if use_embeddings else "tfidf",
     }
     metadata.update(metrics)

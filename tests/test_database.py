@@ -10,7 +10,7 @@ import pytest
 
 @pytest.fixture
 def db(tmp_path, monkeypatch):
-    from db import database as db_module
+    from backend.database import repository as db_module
     monkeypatch.setattr(db_module, "DB_PATH", tmp_path / "test.db")
     db_module.init_db()
     return db_module

@@ -15,6 +15,7 @@ class Workspace(models.Model):
     password_salt = models.TextField()
     uses_custom_model = models.IntegerField(default=0)
     escalation_email = models.TextField(null=True, blank=True)
+    ticket_prefix = models.TextField(default='')
     created_at = models.TextField()
 
     class Meta:
@@ -43,6 +44,7 @@ class Ticket(models.Model):
     action_taken = models.TextField(default='')
     updated_by = models.TextField(default='')
     reassigned_to = models.TextField(default='')
+    assigned_to_user_id = models.IntegerField(null=True, blank=True)
     duplicate_count = models.IntegerField(default=0)
     last_duplicate_at = models.TextField(null=True, blank=True)
 

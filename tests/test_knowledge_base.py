@@ -2,8 +2,8 @@
 tests/test_knowledge_base.py
 """
 
-from utils.knowledge_base import get_suggested_reply
-from utils.profiles import PROFILES, get_categories
+from backend.domain.knowledge_base import get_suggested_reply
+from backend.domain.profiles import PROFILES, get_categories
 
 
 def test_every_category_has_a_suggested_reply():

@@ -5,7 +5,7 @@ tests/test_custom_training.py
 import pandas as pd
 import pytest
 
-from utils.custom_training import (
+from backend.domain.custom_training import (
     get_custom_metrics,
     has_custom_model,
     load_custom_model,
@@ -17,7 +17,7 @@ from utils.custom_training import (
 @pytest.fixture
 def isolated_dirs(tmp_path, monkeypatch):
     """Point the custom training module at a temp directory for test isolation."""
-    from utils import custom_training as ct
+    from backend.domain import custom_training as ct
     monkeypatch.setattr(ct, "CUSTOM_DATA_DIR", tmp_path / "data_custom")
     monkeypatch.setattr(ct, "CUSTOM_MODEL_DIR", tmp_path / "model_custom")
     return ct
