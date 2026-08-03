@@ -1,17 +1,55 @@
 'use client'
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'outline' | 'ghost'
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { cn } from '@/lib/utils'
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'default'
   size?: 'sm' | 'md' | 'lg'
+  loading?: boolean
+  icon?: ReactNode
+  iconRight?: ReactNode
 }
 
-export default function Button({ variant = 'primary', size = 'md', className = '', children, ...props }: ButtonProps) {
-  const base = 'inline-flex items-center justify-center gap-2 rounded-xl font-body font-semibold transition-all duration-200 cursor-pointer'
-  const variants = {
-    primary: 'bg-[#0FA4AF] text-black hover:brightness-110 shadow-[0_0_15px_rgba(15,164,175,0.3)] hover:shadow-[0_0_25px_rgba(15,164,175,0.5)]',
-    outline: 'bg-transparent text-[#E8E4DC] border border-white/20 hover:bg-white/10 hover:border-white/30',
-    ghost: 'bg-transparent text-[#6B7280] hover:text-[#E8E4DC] hover:bg-white/5',
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = 'primary', size = 'md', loading, icon, iconRight, children, disabled, ...props }, ref) => {
+    const baseStyles = 'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-svk-accent focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none'
+
+    const variants = {
+      primary: 'bg-svk-accent text-white hover:bg-svk-accent/90 active:bg-svk-accent/80 shadow-accent-glow hover:shadow-accent-glow-lg',
+      default: 'bg-svk-accent text-white hover:bg-svk-accent/90 active:bg-svk-accent/80 shadow-accent-glow hover:shadow-accent-glow-lg',
+      secondary: 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20',
+      ghost: 'text-current hover:bg-white/5',
+      danger: 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20',
+      outline: 'border border-svk-accent/40 text-svk-accent hover:bg-svk-accent/10 hover:border-svk-accent/60',
+    }
+
+    const sizes = {
+      sm: 'h-8 px-3 text-body-sm',
+      md: 'h-10 px-5 text-body-sm',
+      lg: 'h-12 px-8 text-body',
+    }
+
+    return (
+      <button
+        ref={ref}
+        className={cn(baseStyles, variants[variant], sizes[size], className)}
+        disabled={disabled || loading}
+        {...props}
+      >
+        {loading ? (
+          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        ) : icon}
+        {children}
+        {iconRight}
+      </button>
+    )
   }
-  const sizes = { sm: 'px-3 py-1.5 text-sm', md: 'px-5 py-2.5 text-sm', lg: 'px-7 py-3 text-base' }
-  return <button className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>{children}</button>
-}
+)
+
+Button.displayName = 'Button'
+export { Button }
+export default Button

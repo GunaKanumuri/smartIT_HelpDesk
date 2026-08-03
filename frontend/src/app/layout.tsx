@@ -3,20 +3,28 @@ import './globals.css'
 import { AuthProvider } from '@/lib/auth'
 
 export const metadata: Metadata = {
-  title: 'SevakAI | Intelligent Support Classification',
-  description: 'AI-powered support triage. Every message sorted before it reaches your team.',
-  openGraph: { title: 'SevakAI — Intelligent Support', description: 'AI-powered support triage for small businesses.', type: 'website' },
+  title: 'SevaKAI | AI-Powered Support Intelligence',
+  description: 'Intelligent support triage powered by AI. Every message classified, prioritized, and routed before it reaches your team.',
+  openGraph: {
+    title: 'SevaKAI — AI-Powered Support Intelligence',
+    description: 'Intelligent support triage for modern businesses. Classify, prioritize, and route every ticket automatically.',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="antialiased">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;600&display=swap"
+          rel="stylesheet"
+        />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
-      <body className="bg-[#0A0E1A] text-[#E8E4DC] font-body antialiased overflow-x-hidden">
+      <body className="font-body overflow-x-hidden">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

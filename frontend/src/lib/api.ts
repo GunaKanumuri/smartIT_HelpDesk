@@ -193,7 +193,7 @@ export async function addTeamMember(data: {
 }
 
 export async function updateTeamMember(
-  userId: number,
+  userId: number | string,
   data: { role?: string; is_active?: boolean }
 ): Promise<{ success: boolean }> {
   return request(`/api/admin/team/${userId}`, {
@@ -202,7 +202,7 @@ export async function updateTeamMember(
   })
 }
 
-export async function removeTeamMember(userId: number): Promise<{ success: boolean }> {
+export async function removeTeamMember(userId: number | string): Promise<{ success: boolean }> {
   return request(`/api/admin/team/${userId}`, {
     method: 'DELETE',
   })

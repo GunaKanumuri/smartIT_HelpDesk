@@ -1,10 +1,58 @@
 'use client'
 
-export default function Textarea({ label, className = '', ...props }: { label?: string } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return (
-    <div className="mb-3">
-      {label && <label className="block text-body-sm font-medium text-[#6B7280] mb-1 font-body">{label}</label>}
-      <textarea className={`w-full bg-[#0A0E1A] border border-white/10 rounded-xl px-4 py-2.5 text-body-sm text-[#E8E4DC] font-body outline-none resize-y min-h-[100px] placeholder:text-[#6B7280] focus:border-[#0FA4AF]/50 focus:shadow-[0_0_0_3px_rgba(15,164,175,0.1)] transition-all ${className}`} {...props} />
-    </div>
-  )
+import { forwardRef, type TextareaHTMLAttributes } from 'react'
+import { cn } from '@/lib/utils'
+
+interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string
+  error?: string
+  hint?: string
+  showCount?: boolean
 }
+
+const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, label, error, hint, showCount, maxLength, value, id, ...props }, ref) => {
+    const textareaId = id || label?.toLowerCase().replace(/\s+/g, '-')
+    const charCount = typeof value === 'string' ? value.length : 0
+
+    return (
+      <div className="w-full">
+        {label && (
+          <label htmlFor={textareaId} className="block text-body-sm font-medium mb-1.5 text-inherit opacity-80">
+            {label}
+          </label>
+        )}
+        <textarea
+          ref={ref}
+          id={textareaId}
+          value={value}
+          maxLength={maxLength}
+          className={cn(
+            'w-full min-h-[120px] rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-body text-inherit placeholder:text-current placeholder:opacity-30 resize-y',
+            'transition-all duration-200',
+            'focus:outline-none focus:border-svk-accent/50 focus:ring-2 focus:ring-svk-accent/20 focus:bg-white/[0.07]',
+            'disabled:opacity-50 disabled:cursor-not-allowed',
+            error && 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/20',
+            className
+          )}
+          {...props}
+        />
+        <div className="flex justify-between mt-1.5">
+          {error && <p className="text-caption text-red-400">{error}</p>}
+          {hint && !error && <p className="text-caption opacity-50">{hint}</p>}
+          {!error && !hint && <span />}
+          {showCount && maxLength && (
+            <span className={cn('text-caption opacity-40', charCount > maxLength * 0.9 && 'text-amber-400 opacity-100')}>
+              {charCount}/{maxLength}
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
+)
+
+Textarea.displayName = 'Textarea'
+export { Textarea }
+export default Textarea
+
