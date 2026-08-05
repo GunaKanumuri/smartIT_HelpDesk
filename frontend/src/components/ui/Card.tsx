@@ -45,14 +45,14 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
   }
 )
 
-const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('p-6', className)} {...props} />
-  )
-)
-CardContent.displayName = 'CardContent'
-
 Card.displayName = 'Card'
+
+const CardContent = ({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('', className)} {...props}>
+    {children}
+  </div>
+)
+
 export { Card, CardContent }
 export default Card
 

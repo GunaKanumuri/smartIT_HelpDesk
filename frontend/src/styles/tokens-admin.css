@@ -1,43 +1,43 @@
 /* ============================================
    SevaKAI Design Tokens — Admin Dashboard
-   Theme: FintechX Dark SaaS Dashboard
+   Theme: Vibrant High-Contrast Modern SaaS
    ============================================ */
 
 [data-section="admin"],
 .admin-section {
-  --color-bg: #0B0F19;
-  --color-sidebar: #0F1320;
-  --color-sidebar-hover: #161B2E;
-  --color-surface: #151A2D;
-  --color-surface-hover: #1C2240;
-  --color-surface-active: #232A48;
+  --color-bg: #F8FAFC;
+  --color-sidebar: #FFFFFF;
+  --color-sidebar-hover: #F1F5F9;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F8FAFC;
+  --color-surface-active: #E2E8F0;
 
-  --color-accent: #0FA4AF;
-  --color-accent-light: #AFDDE5;
-  --color-accent-secondary: #6366F1;
-  --color-accent-tertiary: #8B5CF6;
+  --color-accent: #2563EB;
+  --color-accent-light: #60A5FA;
+  --color-accent-secondary: #4F46E5;
+  --color-accent-tertiary: #7C3AED;
 
-  --color-text: #E2E8F0;
-  --color-text-secondary: #94A3B8;
+  --color-text: #0F172A;
+  --color-text-secondary: #475569;
   --color-text-muted: #64748B;
-  --color-text-heading: #F8FAFC;
+  --color-text-heading: #020617;
 
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-border-active: rgba(15, 164, 175, 0.4);
+  --color-border: #E2E8F0;
+  --color-border-active: #2563EB;
 
   --color-success: #10B981;
-  --color-success-bg: rgba(16, 185, 129, 0.12);
+  --color-success-bg: rgba(16, 185, 129, 0.1);
   --color-warning: #F59E0B;
-  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-warning-bg: rgba(245, 158, 11, 0.1);
   --color-danger: #EF4444;
-  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-danger-bg: rgba(239, 68, 68, 0.1);
   --color-info: #3B82F6;
-  --color-info-bg: rgba(59, 130, 246, 0.12);
+  --color-info-bg: rgba(59, 130, 246, 0.1);
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-sidebar: 2px 0 8px rgba(0, 0, 0, 0.3);
-  --shadow-dropdown: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  --shadow-sidebar: 1px 0 0 #E2E8F0;
+  --shadow-dropdown: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
   --radius-sm: 6px;
   --radius-md: 8px;

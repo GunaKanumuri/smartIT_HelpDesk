@@ -1,175 +1,139 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-
-/* Mapping of keywords to categories with matching colors/icons */
-type Category = 'Billing' | 'Product' | 'Shipping';
-
-const categoryConfig: Record<Category, { color: string; bg: string; border: string; text: string; icon: string }> = {
-  Billing: { color: '#F59E0B', bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', icon: '💰' },
-  Product: { color: '#8B5CF6', bg: 'bg-violet-500/10', border: 'border-violet-500/20', text: 'text-violet-400', icon: '📦' },
-  Shipping: { color: '#10B981', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400', icon: '🚚' },
-};
-
-/* Keywords per category */
-const categoryKeywords: Record<Category, string[]> = {
-  Billing: ['invoice', 'invoice', 'billing', 'charge', 'charged', 'pay', 'payment', 'refund', 'billing', 'overcharge', 'undercharge', 'bill', 'price', 'pricing', 'receipt', 'transaction', 'fee', 'fees', 'cost', 'billing problem'],
-  Product: ['product', 'broken', 'defective', 'quality', 'warranty', 'return', 'exchange', 'damaged', 'missing', 'wrong item', 'defect', 'not working', 'malfunction', 'feature request'],
-  Shipping: ['deliver', 'delay', 'late', 'tracking', 'shipped', 'shipment', 'arrive', 'arrival', 'not delivered', 'lost package', 'missing delivery', 'tracking', 'carrier', 'courier', 'delivery', 'undelivered', 'order not arrived'],
-};
-
-function classifyMessage(text: string): Category {
-  const lower = text.toLowerCase();
-  let best: Category = 'Shipping';
-  let bestCount = 0;
-  for (const [cat, keywords] of Object.entries(categoryKeywords)) {
-    const count = keywords.filter(kw => lower.includes(kw)).length;
-    if (count > bestCount) {
-      bestCount = count;
-      best = cat as Category;
-    }
-  }
-  return bestCount > 0 ? best : 'Shipping';
-}
 
 export default function Hero() {
-  const [demoMessage, setDemoMessage] = useState('My order has not been delivered yet.');
-  const [classification, setClassification] = useState<Category>('Shipping');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setClassification(classifyMessage(demoMessage));
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [demoMessage]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDemoMessage(e.target.value);
-  };
-
-  const presets = [
-    'I need a refund for the overcharge on my last order #4521',
-    'The product arrived damaged, I need a replacement',
-    'Where is my order? The tracking shows nothing updated',
-  ];
-
   const scrollToHowItWorks = () => {
     document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <section className="relative pt-24 pb-16 lg:pt-36 lg:pb-24 overflow-hidden">
-      {/* Warm golden background glow */}
-      <div className="absolute top-0 left-1/4 w-[60vw] h-[40vw] bg-amber-400/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[50vw] h-[35vw] bg-violet-400/5 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-teal-400/5 rounded-full blur-[120px] pointer-events-none" />
-
+    <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-10 items-center">
-
-          {/* LEFT: Text */}
-          <div className="reveal transition-all duration-1000 ease-out">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight text-gray-900">
-              <span className="block">AI That Sorts Your</span>
-              <span className="block mt-2 bg-gradient-to-r from-amber-500 via-violet-500 to-teal-500 bg-clip-text text-transparent">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+          
+          <div className="reveal opacity-0 translate-y-10 transition-all duration-1000 ease-out">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
+              <span className="block text-white">AI That Sorts Your</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#0FA4AF] to-[#964734] animate-gradient-x">
                 Support Tickets
               </span>
             </h1>
-
-            <p className="mt-6 text-lg text-gray-600 max-w-xl leading-relaxed">
-              Every message classified, prioritized, and routed — before it reaches your team.
-              Built for businesses that refuse to let good tickets get lost.
+            
+            <p className="mt-6 text-xl text-gray-400 max-w-2xl leading-relaxed">
+              Every message classified, prioritized, and routed — before it reaches your team. Built for businesses that refuse to let good support tickets get lost.
             </p>
-
-            {/* Interactive demo box */}
-            <div className="mt-8 bg-white border border-gray-200 rounded-2xl shadow-lg shadow-gray-200/50 p-6 max-w-lg">
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Try it out &mdash; type a support message</h3>
-              <input
-                ref={inputRef}
-                type="text"
-                value={demoMessage}
-                onChange={handleInputChange}
-                placeholder="e.g. My order has not been delivered..."
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50 text-gray-900 text-sm focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all placeholder-gray-400"
-              />
-              {/* Preset chips */}
-              <div className="mt-3 flex flex-wrap gap-2">
-                {presets.map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => { setDemoMessage(preset); inputRef.current?.focus(); }}
-                    className="text-xs px-3 py-1.5 rounded-full border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all"
-                  >
-                    {preset.length > 42 ? preset.slice(0, 42) + '...' : preset}
-                  </button>
-                ))}
-              </div>
-              {/* Classification result */}
-              <div className="mt-4 flex items-center gap-3">
-                <span className="text-sm text-gray-500">AI Classification:</span>
-                <Badge
-                  variant="outline"
-                  className={`${classification === 'Billing' ? 'bg-amber-50 text-amber-700 border-amber-200' : classification === 'Product' ? 'bg-violet-50 text-violet-700 border-violet-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'} text-sm px-3 py-1 rounded-full border`}
-                >
-                  <span className="mr-1">{classification === 'Billing' ? '💰' : classification === 'Product' ? '📦' : '🚚'}</span>
-                  {classification}
-                </Badge>
-              </div>
-            </div>
-
-            <div className="mt-6 flex flex-col sm:flex-row gap-4">
+            
+            <div className="mt-10 flex flex-col sm:flex-row gap-4">
               <Link href="/signup">
-                <Button size="lg" className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all">
+                <Button size="lg" className="w-full sm:w-auto bg-[#0FA4AF] hover:bg-[#0FA4AF]/90 text-white shadow-[0_0_20px_rgba(15,164,175,0.4)] hover:shadow-[0_0_30px_rgba(15,164,175,0.6)] transition-all">
                   Start Free
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" onClick={scrollToHowItWorks} className="w-full sm:w-auto border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 shadow-sm">
-                See How It Works →
+              <Button size="lg" variant="outline" onClick={scrollToHowItWorks} className="w-full sm:w-auto border-white/20 text-white hover:bg-white/10 backdrop-blur-sm">
+                See How It Works
               </Button>
             </div>
-
-            <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm text-gray-500 font-medium">
+            
+            <div className="mt-12 flex flex-wrap gap-x-8 gap-y-4 text-sm text-gray-500 font-medium">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-amber-400" />
+                <div className="w-2 h-2 rounded-full bg-[#0FA4AF] animate-pulse" />
                 Real-time Classification
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-violet-500" />
+                <div className="w-2 h-2 rounded-full bg-[#964734]" />
                 Multi-Sector AI
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-teal-400" />
+                <div className="w-2 h-2 rounded-full bg-white/50" />
                 Zero Setup Required
+              </div>
+            </div>
+
+            {/* Social proof strip */}
+            <div className="mt-12 pt-8 border-t border-white/[0.06]">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex -space-x-2">
+                  {['AK', 'JB', 'SR', 'MZ'].map((initials, i) => (
+                    <div
+                      key={initials}
+                      className="w-9 h-9 rounded-full border-2 border-[#0A0E1A] bg-gradient-to-br from-[#0FA4AF]/30 to-[#964734]/30 flex items-center justify-center text-[10px] font-bold text-white"
+                      style={{ zIndex: 4 - i }}
+                    >
+                      {initials}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-400">
+                  Trusted by <span className="text-white font-semibold">500+</span> support teams
+                </p>
               </div>
             </div>
           </div>
 
-          {/* RIGHT: Stats highlight card */}
-          <div className="reveal transition-all duration-1000 delay-300 ease-out relative">
-            <div className="bg-white border border-gray-200 rounded-2xl shadow-xl shadow-gray-200/40 p-8 space-y-6">
-              <div className="text-center mb-4">
-                <h3 className="text-xl font-bold text-gray-900">Why teams choose SevaKAI</h3>
-                <p className="text-sm text-gray-500 mt-1">AI-powered triage that actually works</p>
+          {/* Interactive demo visual */}
+          <div className="reveal opacity-0 translate-y-10 transition-all duration-1000 delay-300 ease-out relative h-[400px] lg:h-[500px] rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 overflow-hidden flex flex-col shadow-[0_0_50px_rgba(15,164,175,0.1)]">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0FA4AF]/10 to-transparent pointer-events-none" />
+            
+            <div className="flex justify-between items-center mb-8 pb-4 border-b border-white/10">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { label: 'Accuracy', value: '97.3%', color: 'from-amber-400 to-amber-600', textColor: 'text-amber-600' },
-                  { label: 'Speed', value: '0.2s', color: 'from-violet-400 to-violet-600', textColor: 'text-violet-600' },
-                  { label: 'Tickets', value: '1.2M+', color: 'from-teal-400 to-teal-600', textColor: 'text-teal-600' },
-                  { label: 'Sectors', value: '14', color: 'from-pink-400 to-pink-600', textColor: 'text-pink-600' },
-                ].map((stat) => (
-                  <div key={stat.label} className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 text-center">
-                    <div className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>{stat.value}</div>
-                    <div className="text-xs text-gray-500 mt-1">{stat.label}</div>
+              <div className="text-xs text-gray-500 font-mono">AI Triage Engine Active</div>
+            </div>
+
+            <div className="flex-grow relative flex gap-6">
+              {/* Incoming stream */}
+              <div className="w-1/3 border-r border-white/10 relative">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-16 bg-white/10 rounded-lg animate-[slideDown_3s_linear_infinite]" />
+                <div className="absolute top-24 left-1/2 -translate-x-1/2 w-3/4 h-12 bg-white/5 rounded-lg animate-[slideDown_3s_linear_infinite_1s]" />
+                <div className="absolute top-48 left-1/2 -translate-x-1/2 w-3/4 h-20 bg-white/10 rounded-lg animate-[slideDown_3s_linear_infinite_2s]" />
+              </div>
+
+              {/* AI Processing Node */}
+              <div className="absolute left-1/3 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-[#0FA4AF] blur-xl opacity-40 animate-pulse rounded-full" />
+                  <div className="w-16 h-16 bg-gray-900 border border-[#0FA4AF]/50 rounded-2xl flex items-center justify-center relative z-10 shadow-[0_0_15px_rgba(15,164,175,0.5)]">
+                    <div className="w-8 h-8 rounded-full border-2 border-t-[#0FA4AF] border-r-[#0FA4AF] border-b-transparent border-l-transparent animate-spin" />
                   </div>
-                ))}
+                </div>
+              </div>
+
+              {/* Classified outputs */}
+              <div className="w-2/3 pl-8 flex flex-col gap-4 justify-center">
+                <div className="h-14 bg-red-500/10 border border-red-500/20 rounded-xl relative overflow-hidden flex items-center px-4 gap-3">
+                  <div className="w-2 h-8 bg-red-500 rounded-full" />
+                  <div className="flex-grow h-2 bg-red-500/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-red-500 w-full animate-[pulse_2s_ease-in-out_infinite]" />
+                  </div>
+                </div>
+                <div className="h-14 bg-yellow-500/10 border border-yellow-500/20 rounded-xl relative overflow-hidden flex items-center px-4 gap-3">
+                  <div className="w-2 h-8 bg-yellow-500 rounded-full" />
+                  <div className="flex-grow h-2 bg-yellow-500/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-yellow-500 w-3/4 animate-[pulse_3s_ease-in-out_infinite]" />
+                  </div>
+                </div>
+                <div className="h-14 bg-green-500/10 border border-green-500/20 rounded-xl relative overflow-hidden flex items-center px-4 gap-3">
+                  <div className="w-2 h-8 bg-green-500 rounded-full" />
+                  <div className="flex-grow h-2 bg-green-500/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500 w-1/2 animate-[pulse_4s_ease-in-out_infinite]" />
+                  </div>
+                </div>
               </div>
             </div>
+            
+            <style jsx>{`
+              @keyframes slideDown {
+                0% { transform: translate(-50%, -100%); opacity: 0; }
+                20% { opacity: 1; }
+                80% { opacity: 1; }
+                100% { transform: translate(-50%, 400px); opacity: 0; }
+              }
+            `}</style>
           </div>
         </div>
       </div>

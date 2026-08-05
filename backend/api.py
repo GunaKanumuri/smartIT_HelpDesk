@@ -319,7 +319,9 @@ async def get_current_workspace(authorization: str | None = Header(default=None)
     workspace = db.get_workspace_by_session(token)
     if not workspace:
         raise HTTPException(status_code=401, detail="Session expired or invalid — please log in again.")
-    return workspace
+    # Convert sqlite3.Row -> dict so downstream code can use both
+    # row["col"] access and dict .get() (e.g. workspace.get("session_user_id")).
+    return dict(workspace)
 
 
 def require_workspace_permission(permission: str):

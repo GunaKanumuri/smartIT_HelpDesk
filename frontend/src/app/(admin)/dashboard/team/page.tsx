@@ -17,17 +17,11 @@ export default function TeamPage() {
   const [members, setMembers] = useState<WorkspaceUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const { addToast } = useToast();
+  const { toast } = useToast();
   const { workspace } = useAuth();
   
   // Active dropdown state
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-
-  // Convert any numeric IDs to strings for consistency
-  const safeMembers = members.map(m => ({
-    ...m,
-    id: String(m.id)
-  }));
+  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
 
   const fetchTeam = async () => {
     setLoading(true);
@@ -36,7 +30,7 @@ export default function TeamPage() {
       setMembers(data);
     } catch (error) {
       console.error('Failed to load team:', error);
-      addToast({ title: 'Failed to load team', type: 'error' });
+      toast('Failed to load team', 'error');
     } finally {
       setLoading(false);
     }
@@ -50,40 +44,40 @@ export default function TeamPage() {
     setMembers(prev => [...prev, newMember]);
   };
 
-  const handleToggleActive = async (id: string, currentStatus: boolean | number) => {
+  const handleToggleActive = async (id: number, currentStatus: boolean) => {
     setActiveDropdown(null);
-    const boolStatus = Boolean(currentStatus);
+    const newValue = currentStatus ? 0 : 1;
     try {
-      await updateTeamMember(String(id), { is_active: !boolStatus });
-      setMembers(prev => prev.map(m => m.id === id ? { ...m, is_active: !boolStatus } : m));
-      addToast(`Member ${!boolStatus ? 'activated' : 'deactivated'}`, 'success');
+      await updateTeamMember(id, { is_active: newValue });
+      setMembers(prev => prev.map(m => m.id === id ? { ...m, is_active: newValue } : m));
+      toast(`Member ${currentStatus ? 'deactivated' : 'activated'}`, 'success');
     } catch (error) {
-      addToast('Failed to update member status', 'error');
+      toast('Failed to update member status', 'error');
     }
   };
 
-  const handleToggleRole = async (id: string, currentRole: string) => {
+  const handleToggleRole = async (id: number, currentRole: string) => {
     setActiveDropdown(null);
     const newRole = currentRole === 'admin' ? 'agent' : 'admin';
     try {
-      await updateTeamMember(String(id), { role: newRole });
+      await updateTeamMember(id, { role: newRole });
       setMembers(prev => prev.map(m => m.id === id ? { ...m, role: newRole } : m));
-      addToast({ title: `Role changed to ${newRole}`, type: 'success' });
+      toast(`Role changed to ${newRole}`, 'success');
     } catch (error) {
-      addToast({ title: 'Failed to update member role', type: 'error' });
+      toast('Failed to update member role', 'error');
     }
   };
 
-  const handleRemove = async (id: string) => {
+  const handleRemove = async (id: number) => {
     setActiveDropdown(null);
     if (!confirm('Are you sure you want to remove this member? This action cannot be undone.')) return;
-
+    
     try {
-      await removeTeamMember(String(id));
+      await removeTeamMember(id);
       setMembers(prev => prev.filter(m => m.id !== id));
-      addToast({ title: 'Member removed', type: 'success' });
+      toast('Member removed', 'success');
     } catch (error) {
-      addToast({ title: 'Failed to remove member', type: 'error' });
+      toast('Failed to remove member', 'error');
     }
   };
 
@@ -120,14 +114,14 @@ export default function TeamPage() {
                 </tr>
               </thead>
               <tbody>
-                {safeMembers.length === 0 ? (
+                {members.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
                       No team members found.
                     </td>
                   </tr>
                 ) : (
-                  safeMembers.map((member) => (
+                  members.map((member) => (
                     <tr 
                       key={member.id} 
                       className="border-b border-white/[0.02] last:border-0 hover:bg-white/[0.02] transition-colors"
@@ -186,9 +180,9 @@ export default function TeamPage() {
                             </button>
                             <button 
                               className="w-full text-left px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors"
-                              onClick={() => handleToggleActive(member.id, member.is_active)}
+                              onClick={() => handleToggleActive(member.id, !!member.is_active)}
                             >
-                              {Boolean(member.is_active) ? 'Deactivate' : 'Activate'}
+                              {member.is_active ? 'Deactivate' : 'Activate'}
                             </button>
                             <div className="h-px bg-white/10 my-1"></div>
                             <button 

@@ -182,17 +182,18 @@ export default function SignupPage() {
                 <Select
                   name="profile"
                   value={formData.profile}
-                  onChange={handleChange as any}
+                  onChange={(e) => setFormData(prev => ({ ...prev, profile: e.target.value }))}
                   className="bg-black/20 border-white/[0.1] text-white w-full h-10 rounded-md px-3"
                   required={step === 2}
-                >
-                  <option value="" disabled className="text-gray-500">Select profile type</option>
-                  <option value="Customer Support">Customer Support</option>
-                  <option value="Technical Support">Technical Support</option>
-                  <option value="Sales">Sales</option>
-                  <option value="Operations">Operations</option>
-                  <option value="Other">Other</option>
-                </Select>
+                  placeholder="Select profile type"
+                  options={[
+                    { value: "customer_support", label: "Customer Support" },
+                    { value: "it_support", label: "Technical Support" },
+                    { value: "Sales", label: "Sales" },
+                    { value: "Operations", label: "Operations" },
+                    { value: "Other", label: "Other" },
+                  ]}
+                />
               </div>
             </div>
             <div className="absolute bottom-0 left-0 right-0 flex gap-3 pt-4 bg-[#111827] border-t border-white/[0.05]">
@@ -205,11 +206,11 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div
-            className="transition-transform duration-500 ease-in-out absolute inset-0 w-full flex flex-col"
+          <div 
+            className="transition-transform duration-500 ease-in-out absolute inset-0 w-full"
             style={{ transform: `translateX(${(3 - step) * 100}%)`, opacity: step === 3 ? 1 : 0, pointerEvents: step === 3 ? 'auto' : 'none' }}
           >
-            <div className="space-y-4 flex-1 overflow-y-auto pr-2 pb-20 scrollbar-hide">
+            <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-300">Contact Email</label>
                 <Input
@@ -263,7 +264,7 @@ export default function SignupPage() {
                 )}
               </div>
             </div>
-
+            
             <div className="absolute bottom-0 left-0 right-0 flex gap-3 pt-4 bg-[#111827]">
               <Button type="button" variant="outline" onClick={handleBack} className="w-1/3 border-white/[0.1] text-gray-300 hover:bg-white/5" disabled={loading}>
                 Back

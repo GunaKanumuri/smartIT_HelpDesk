@@ -28,7 +28,7 @@ export default function HowItWorks() {
     <section id="how-it-works" className="py-24 relative z-10 bg-black/20 border-y border-white/5">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
         
-        <div className="reveal transition-all duration-700 ease-out text-center mb-20">
+        <div className="reveal opacity-0 translate-y-10 transition-all duration-700 ease-out text-center mb-20">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">How It Works</h2>
           <p className="text-xl text-gray-400">Three steps to support clarity.</p>
         </div>

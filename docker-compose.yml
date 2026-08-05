@@ -1,0 +1,35 @@
+# =============================================================================
+# docker-compose.yml — local/staging stack for the SevakAI backend
+#
+# Run: docker compose up --build
+# Backend will be reachable at http://localhost:8000
+#
+# The frontend (Next.js) is intentionally not included here — it's usually
+# deployed separately (e.g. Vercel). Point its NEXT_PUBLIC_API_URL at
+# wherever this backend ends up running.
+# =============================================================================
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - sevakai-storage:/app/storage
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  # Optional: only needed if CACHE_BACKEND=redis, or if the rate limiter in
+  # backend/security/rate_limit.py is later swapped to a Redis-backed store
+  # for multi-worker deployments (see the note at the top of that file).
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  sevakai-storage:

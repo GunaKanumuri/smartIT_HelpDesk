@@ -52,6 +52,13 @@ async function request<T>(
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}))
+
+    if (res.status === 429) {
+      const retryAfter = parseInt(res.headers.get('Retry-After') || '30', 10)
+      const msg = `Rate limited — try again in ${retryAfter}s`
+      throw new ApiError(data.detail || msg, 429)
+    }
+
     throw new ApiError(data.detail || `Request failed with status ${res.status}`, res.status)
   }
 
@@ -115,8 +122,11 @@ export async function getMe(): Promise<WorkspaceAdminInfo> {
 
 // === Admin: Tickets ===
 
+// Centralized tickets cache key for SWR caching across the app
+export const TICKETS_KEY = '/api/admin/tickets' as const
+
 export async function getTickets(): Promise<Ticket[]> {
-  return request('/api/admin/tickets')
+  return request(TICKETS_KEY)
 }
 
 export async function updateTicket(
@@ -194,7 +204,7 @@ export async function addTeamMember(data: {
 
 export async function updateTeamMember(
   userId: number | string,
-  data: { role?: string; is_active?: boolean }
+  data: { role?: string; is_active?: boolean | number }
 ): Promise<{ success: boolean }> {
   return request(`/api/admin/team/${userId}`, {
     method: 'PATCH',
@@ -212,4 +222,20 @@ export async function removeTeamMember(userId: number | string): Promise<{ succe
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   return request('/api/admin/stats')
+}
+
+// === Auth: Password Reset ===
+
+export async function forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+  return request('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ success: boolean; message: string }> {
+  return request('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  })
 }

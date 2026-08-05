@@ -2,38 +2,67 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Ticket as TicketIcon, Clock, AlertTriangle, Users as UsersIcon, ArrowRight, BrainCircuit } from 'lucide-react';
+import {
+  Ticket as TicketIcon, Clock, AlertTriangle, Users as UsersIcon, ArrowRight, BrainCircuit,
+  Activity,
+} from 'lucide-react';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import StatsCard from '@/components/admin/StatsCard';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { SkeletonCard, SkeletonTable } from '@/components/ui/Skeleton';
-import { getDashboardStats, getTickets } from '@/lib/api';
+import { getDashboardStats, getTickets, TICKETS_KEY } from '@/lib/api';
 import type { DashboardStats, Ticket } from '@/types';
 import { formatRelativeTime } from '@/lib/utils';
+import useSWR from 'swr';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentTickets, setRecentTickets] = useState<Ticket[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  // Use SWR for shared, cached ticket fetching
+  const { data: ticketsData, error: ticketsError, isLoading: ticketsLoading } = useSWR<Ticket[]>(TICKETS_KEY, getTickets, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+  });
+
+  const recentTickets = ticketsData ? ticketsData.slice(0, 5) : [];
+
+  // Build daily ticket volume trend (last 14 days)
+  const trendData = (() => {
+    if (!ticketsData?.length) return [];
+    const now = new Date();
+    const days: { date: string; label: string; count: number }[] = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const full = d.toISOString().slice(0, 10);
+      days.push({ date: full, label: key, count: 0 });
+    }
+    ticketsData.forEach((t) => {
+      const dayKey = t.created_at.slice(0, 10);
+      const slot = days.find((d) => d.date === dayKey);
+      if (slot) slot.count += 1;
+    });
+    return days;
+  })();
 
   useEffect(() => {
-    async function loadData() {
+    async function loadStats() {
       try {
-        const [statsData, ticketsData] = await Promise.all([
-          getDashboardStats(),
-          getTickets(),
-        ]);
+        const statsData = await getDashboardStats();
         setStats(statsData);
-        setRecentTickets(ticketsData.slice(0, 5));
       } catch (error) {
-        console.error('Failed to load dashboard data:', error);
+        console.error('Failed to load dashboard stats:', error);
       } finally {
-        setLoading(false);
+        setStatsLoading(false);
       }
     }
-    
-    loadData();
+    loadStats();
   }, []);
+
+  const loading = statsLoading || ticketsLoading;
 
   if (loading) {
     return (
@@ -92,6 +121,38 @@ export default function DashboardPage() {
         />
       </div>
 
+      <Card className="bg-admin-surface border-white/[0.06] p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Activity size={20} className="text-svk-accent" /> Ticket Volume Trend
+            </h3>
+            <p className="text-sm text-slate-400">Daily incoming tickets over the last 14 days</p>
+          </div>
+        </div>
+        <div className="h-[240px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="ticketGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2DD4BF" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#2DD4BF" stopOpacity={0.0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+              <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+              <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#151A2D', borderColor: '#ffffff10', color: '#fff', borderRadius: '8px' }}
+                itemStyle={{ color: '#2DD4BF' }}
+                cursor={{ stroke: '#2DD4BF', strokeWidth: 1, strokeDasharray: '4 4' }}
+              />
+              <Area type="monotone" dataKey="count" stroke="#2DD4BF" strokeWidth={2} fillOpacity={1} fill="url(#ticketGradient)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-white">Recent Tickets</h3>
@@ -136,7 +197,7 @@ export default function DashboardPage() {
                         <div className="text-slate-500 text-xs mt-1">{ticket.user_email}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <Badge variant="outline" className="text-slate-300 border-white/10">
+                        <Badge variant="default" className="text-slate-300 border-white/10">
                           {ticket.category || 'Uncategorized'}
                         </Badge>
                       </td>

@@ -1,11 +1,10 @@
 """
 backend/gunicorn.conf.py
 
-Gunicorn configuration for production deployment of the SevakAI API.
+Gunicorn configuration for production deployment of the SevakAI FastAPI API.
 
 Run with:
-    cd backend
-    gunicorn sevak_ai.wsgi:application -c gunicorn.conf.py
+    gunicorn backend.api:app -c backend/gunicorn.conf.py
 """
 
 import multiprocessing
@@ -16,10 +15,11 @@ bind = os.environ.get("GUNICORN_BIND", "0.0.0.0:8001")
 backlog = 2048
 
 # ─── Workers ──────────────────────────────────────────────────────────────────
-# 2x CPU + 1 is a good default for CPU-bound Django apps.
+# 2x CPU + 1 is a good default for CPU-bound apps.
 workers = int(os.environ.get("GUNICORN_WORKERS", multiprocessing.cpu_count() * 2 + 1))
-worker_class = "gthread"
-threads = int(os.environ.get("GUNICORN_THREADS", "4"))
+# Use Uvicorn workers for FastAPI (ASGI)
+worker_class = "uvicorn.workers.UvicornWorker"
+worker_connections = 1000
 timeout = 120
 graceful_timeout = 30
 
@@ -45,9 +45,7 @@ preload_app = True
 def on_starting(server):
     """Warm the ML model cache so first requests aren't slow."""
     import os
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sevak_ai.settings")
-    import django
-    django.setup()
+    os.environ.setdefault("SEVAK_AI_ENV", "production")
     from backend.domain.ticket_utils import load_model
     try:
         load_model("customer_support")

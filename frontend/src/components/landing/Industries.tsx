@@ -24,7 +24,7 @@ export default function Industries() {
     <section id="industries" className="py-24 relative z-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="reveal transition-all duration-700 ease-out text-center mb-16">
+        <div className="reveal opacity-0 translate-y-10 transition-all duration-700 ease-out text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">Pre-Tuned for Your Sector</h2>
         </div>
 

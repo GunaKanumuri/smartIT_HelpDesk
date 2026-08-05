@@ -1,34 +1,34 @@
 /* ============================================
    SevaKAI Design Tokens — Auth Section
-   Theme: Clean Dark with Accent (Verth-inspired)
+   Theme: Bright & Modern with Vibrant Gradient
    ============================================ */
 
 [data-section="auth"],
 .auth-section {
-  --color-bg: #0A0E1A;
-  --color-bg-gradient: linear-gradient(135deg, #0A0E1A 0%, #0F1D2E 50%, #0A0E1A 100%);
-  --color-surface: #111827;
-  --color-surface-hover: #1F2937;
+  --color-bg: #F8FAFC;
+  --color-bg-gradient: linear-gradient(135deg, #EFF6FF 0%, #FDF4FF 50%, #FEF2F2 100%);
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F1F5F9;
 
-  --color-accent: #0FA4AF;
-  --color-accent-light: #AFDDE5;
-  --color-accent-glow: rgba(15, 164, 175, 0.35);
+  --color-accent: #2563EB;
+  --color-accent-light: #60A5FA;
+  --color-accent-glow: rgba(37, 99, 235, 0.2);
 
-  --color-text: #E8E4DC;
-  --color-text-secondary: #9CA3AF;
-  --color-text-muted: #6B7280;
-  --color-text-heading: #FFFFFF;
+  --color-text: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
+  --color-text-heading: #0F172A;
 
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-border-focus: rgba(15, 164, 175, 0.5);
+  --color-border: #E2E8F0;
+  --color-border-focus: #2563EB;
 
   --color-error: #EF4444;
-  --color-error-bg: rgba(239, 68, 68, 0.1);
+  --color-error-bg: rgba(239, 68, 68, 0.08);
   --color-success: #10B981;
-  --color-success-bg: rgba(16, 185, 129, 0.1);
+  --color-success-bg: rgba(16, 185, 129, 0.08);
 
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-input-focus: 0 0 0 3px rgba(15, 164, 175, 0.2);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-input-focus: 0 0 0 3px rgba(37, 99, 235, 0.15);
 
   --radius-sm: 8px;
   --radius-md: 12px;

@@ -6,21 +6,27 @@ import { Check, Mail } from 'lucide-react'
 import { AuthCard } from '@/components/auth/AuthCard'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { forgotPassword } from '@/lib/api'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    
-    // Simulate API call since backend doesn't have this yet
-    setTimeout(() => {
+    setError('')
+
+    try {
+      await forgotPassword(email)
       setIsSubmitted(true)
+    } catch (err: any) {
+      setError(err.message || 'Failed to send reset link. Please try again.')
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   return (

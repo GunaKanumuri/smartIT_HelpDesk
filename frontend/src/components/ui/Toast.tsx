@@ -10,13 +10,9 @@ interface Toast {
   duration?: number
 }
 
-type ToastInput =
-  | string
-  | { title?: string; message?: string; type?: string }
-
 interface ToastContextType {
-  toast: (input: ToastInput, variant?: Toast['variant'], duration?: number) => void
-  addToast: (input: ToastInput, variant?: Toast['variant'], duration?: number) => void
+  toast: (message: string, variant?: Toast['variant'], duration?: number) => void
+  addToast: (message: string, variant?: Toast['variant'], duration?: number) => void
 }
 
 const ToastContext = createContext<ToastContextType | null>(null)
@@ -27,26 +23,12 @@ export function useToast() {
   return ctx
 }
 
-function resolveToast(input: ToastInput, fallbackVariant?: Toast['variant']): { message: string; variant: Toast['variant'] } {
-  if (typeof input === 'string') {
-    return { message: input, variant: fallbackVariant || 'info' }
-  }
-  const message = input.title || input.message || ''
-  const variantMap: Record<string, Toast['variant']> = {
-    success: 'success', error: 'error', info: 'info', warning: 'warning',
-  }
-  const variant = variantMap[input.type || ''] || fallbackVariant || 'info'
-  const detail = input.message && input.title ? `\n${input.message}` : ''
-  return { message: message + detail, variant }
-}
-
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
 
-  const toast = useCallback((input: ToastInput, variant: Toast['variant'] = 'info', duration = 4000) => {
-    const resolved = resolveToast(input, variant)
+  const toast = useCallback((message: string, variant: Toast['variant'] = 'info', duration = 4000) => {
     const id = Math.random().toString(36).slice(2)
-    setToasts(prev => [...prev, { id, message: resolved.message, variant: resolved.variant, duration }])
+    setToasts(prev => [...prev, { id, message, variant, duration }])
   }, [])
 
   const dismiss = useCallback((id: string) => {

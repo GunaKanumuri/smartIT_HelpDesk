@@ -1,23 +1,30 @@
-# === Django & DRF ===
-django>=5.1,<6.0
-djangorestframework>=3.15
-djangorestframework-simplejwt>=5.3
-django-cors-headers>=4.4
+# === Web framework (actual runtime — backend/api.py is FastAPI) ===
+fastapi>=0.115,<0.116
+uvicorn[standard]>=0.32,<0.33
+python-multipart>=0.0.9   # required by FastAPI for UploadFile (CSV training uploads)
+pydantic>=2.7,<3.0
+
 
 # === ML & Data ===
-scikit-learn==1.5.2
+# Pinned to 1.9.0 to match the sklearn version the shipped .pkl models in
+# storage/models/ were trained with. Pinning lower (e.g. 1.5.2) works but
+# throws InconsistentVersionWarning on every load and is not guaranteed
+# safe by sklearn's own compatibility policy. If you retrain the models
+# (backend/ml/train_model.py) under a different sklearn version, update
+# this pin to match — and re-run tests/test_model.py, since retrained
+# models can shift predictions on the fixture cases.
+scikit-learn==1.9.0
 pandas==2.2.3
 joblib==1.4.2
 numpy>=1.24
 
 # === Testing ===
 pytest>=8.0
-pytest-django>=4.8
+httpx>=0.27          # required by FastAPI's TestClient
 
-# === Dev Server (optional — Django's runserver is fine) ===
-# uvicorn[standard]==0.32.1
-# gunicorn>=21.2 (Linux production)
+# === Optional: Production Monitoring & Scaling ===
+sentry-sdk>=2.0    # Error tracking (set SENTRY_DSN to enable)
+redis>=5.0         # Only needed if CACHE_BACKEND=redis / for a distributed rate limiter
 
-# === Legacy (keep for reference, not needed with Django) ===
-# streamlit>=1.24
-# fastapi==0.115.5
+# === Production Server ===
+gunicorn>=21.2     # Process manager; pairs with the uvicorn worker class (see Dockerfile)

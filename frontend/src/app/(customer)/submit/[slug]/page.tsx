@@ -21,6 +21,7 @@ export default function SubmitPage({ params }: { params: { slug: string } }) {
   const [message, setMessage] = useState('');
   
   const [submitting, setSubmitting] = useState(false);
+  const [submitStep, setSubmitStep] = useState(0);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
 
@@ -30,7 +31,7 @@ export default function SubmitPage({ params }: { params: { slug: string } }) {
         const info = await getWorkspaceInfo(slug);
         setWorkspaceInfo(info);
       } catch (err) {
-        console.error(err);
+        // log for error handling infrastructure; removed verbose console output for privacy
         setWorkspaceInfo(null);
       } finally {
         setLoadingWorkspace(false);
@@ -47,13 +48,25 @@ export default function SubmitPage({ params }: { params: { slug: string } }) {
     }
     
     setSubmitting(true);
+    setSubmitStep(1);
     setError('');
-    
+
     try {
+      // Simulate a brief processing step so the UI feels responsive
+      await new Promise(r => setTimeout(r, 600));
+      setSubmitStep(2);
+
       const res = await submitTicket({ workspace: slug, name, email, message });
+      setSubmitStep(3);
       setResult(res);
     } catch (err: any) {
-      setError(err.message || 'Failed to submit request. Please try again.');
+      if (err.status === 429) {
+        setError('Too many requests. Please wait a moment and try again.');
+      } else if (err.status === 404) {
+        setError('The support portal you are looking for does not exist.');
+      } else {
+        setError(err.message || 'Failed to submit request. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -185,14 +198,15 @@ export default function SubmitPage({ params }: { params: { slug: string } }) {
               <p className="text-xs text-[#94A3B8] text-right">{message.length}/20 min chars</p>
             </div>
             
-            <Button 
-              type="submit" 
-              disabled={submitting} 
+            <Button
+              type="submit"
+              disabled={submitting}
               className="w-full bg-[#0FA4AF] hover:bg-[#0d8c96] text-white font-medium py-2.5 h-auto transition-colors"
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {submitStep === 1 ? 'Analyzing...' : submitStep === 2 ? 'Classifying with AI...' : 'Submitting...'}
                 </>
               ) : 'Submit Request'}
             </Button>

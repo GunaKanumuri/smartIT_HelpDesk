@@ -58,7 +58,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
 
       <div className="flex-1 overflow-y-auto py-6 flex flex-col gap-2 px-3">
         {navItems.map((item) => {
-          const isActive = pathname != null && (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
+          const isActive = !!pathname && (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
           
           return (
             <Link

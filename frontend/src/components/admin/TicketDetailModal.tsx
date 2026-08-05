@@ -25,7 +25,7 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdated }
   const [actionTaken, setActionTaken] = useState(ticket.action_taken || '');
   const [reassignedTo, setReassignedTo] = useState(ticket.reassigned_to || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addToast } = useToast();
+  const { toast } = useToast();
 
   const handleSave = async () => {
     setIsSubmitting(true);
@@ -38,11 +38,11 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdated }
       });
       
       onUpdated(updated);
-      addToast({ title: 'Ticket updated', type: 'success' });
+      toast('Ticket updated', 'success');
       onClose();
     } catch (error) {
       console.error('Failed to update ticket:', error);
-      addToast({ title: 'Failed to update ticket', message: 'An error occurred', type: 'error' });
+      toast('Failed to update ticket', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -147,16 +147,17 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, onUpdated }
               
               <div>
                 <label className="text-xs text-slate-500 block mb-1">Status</label>
-                <Select 
-                  value={status} 
+                <Select
+                  value={status}
                   onChange={(e) => setStatus(e.target.value)}
                   className="w-full bg-black/20"
-                >
-                  <option value="open">Open</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="resolved">Resolved</option>
-                  <option value="closed">Closed</option>
-                </Select>
+                  options={[
+                    { value: 'open', label: 'Open' },
+                    { value: 'in_progress', label: 'In Progress' },
+                    { value: 'resolved', label: 'Resolved' },
+                    { value: 'closed', label: 'Closed' },
+                  ]}
+                />
               </div>
               
               <div>

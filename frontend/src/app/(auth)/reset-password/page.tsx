@@ -1,42 +1,56 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Lock } from 'lucide-react'
 import { AuthCard } from '@/components/auth/AuthCard'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { resetPassword } from '@/lib/api'
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams?.get('token') || ''
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    
+    setSuccess('')
+
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
     }
 
+    if (!token) {
+      setError('No reset token provided. Please use the link from your email.')
+      return
+    }
+
     setLoading(true)
-    
-    // Simulate API call since backend doesn't have this yet
-    setTimeout(() => {
+
+    try {
+      const res = await resetPassword(token, password)
+      setSuccess(res.message)
+      setTimeout(() => router.push('/login'), 2000)
+    } catch (err: any) {
+      setError(err.message || 'Password reset failed. Please try again.')
+    } finally {
       setLoading(false)
-      router.push('/login')
-    }, 1000)
+    }
   }
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <AuthCard 
-        title="Set new password" 
-        subtitle="Please enter your new password below."
+      <AuthCard
+        title={success ? 'Password Reset' : 'Set new password'}
+        subtitle={success || 'Please enter your new password below.'}
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
@@ -45,52 +59,68 @@ export default function ResetPasswordPage() {
             </div>
           )}
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300">New Password</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-                <Lock size={18} />
+          {!success && (
+            <>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-300">New Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                    <Lock size={18} />
+                  </div>
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="pl-10 bg-black/20 border-white/[0.1] focus:border-teal-400 text-white"
+                    required
+                    minLength={8}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
               </div>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="pl-10 bg-black/20 border-white/[0.1] focus:border-teal-400 text-white"
-                required
-                minLength={8}
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
-          </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300">Confirm Password</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-                <Lock size={18} />
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-300">Confirm Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                    <Lock size={18} />
+                  </div>
+                  <Input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="pl-10 bg-black/20 border-white/[0.1] focus:border-teal-400 text-white"
+                    required
+                    minLength={8}
+                  />
+                </div>
               </div>
-              <Input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                className="pl-10 bg-black/20 border-white/[0.1] focus:border-teal-400 text-white"
-                required
-                minLength={8}
-              />
-            </div>
-          </div>
 
-          <Button 
-            type="submit" 
-            className="w-full bg-teal-500 hover:bg-teal-400 text-white shadow-[0_0_15px_rgba(20,184,166,0.3)] mt-2"
-            disabled={loading}
-          >
-            {loading ? 'Resetting...' : 'Reset Password'}
-          </Button>
+              <Button
+                type="submit"
+                className="w-full bg-teal-500 hover:bg-teal-400 text-white shadow-[0_0_15px_rgba(20,184,166,0.3)] mt-2"
+                disabled={loading}
+              >
+                {loading ? 'Resetting...' : 'Reset Password'}
+              </Button>
+            </>
+          )}
         </form>
       </AuthCard>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }

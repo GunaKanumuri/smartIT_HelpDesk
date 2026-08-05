@@ -5,9 +5,19 @@ import { AuthProvider } from '@/lib/auth'
 export const metadata: Metadata = {
   title: 'SevaKAI | AI-Powered Support Intelligence',
   description: 'Intelligent support triage powered by AI. Every message classified, prioritized, and routed before it reaches your team.',
+  metadataBase: new URL('https://sevak.ai'),
   openGraph: {
     title: 'SevaKAI — AI-Powered Support Intelligence',
     description: 'Intelligent support triage for modern businesses. Classify, prioritize, and route every ticket automatically.',
+    url: 'https://sevak.ai',
+    siteName: 'SevaKAI',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+      },
+    ],
     type: 'website',
   },
 }

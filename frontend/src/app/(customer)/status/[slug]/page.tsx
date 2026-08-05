@@ -14,7 +14,7 @@ import { AlertCircle, Loader2, Search } from 'lucide-react';
 function StatusContent({ slug }: { slug: string }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const ticketParam = searchParams?.get('ticket') ?? null;
+  const ticketParam = searchParams?.get('ticket') || '';
   
   const [ticketId, setTicketId] = useState(ticketParam || '');
   const [statusData, setStatusData] = useState<any>(null);
@@ -109,13 +109,13 @@ function StatusContent({ slug }: { slug: string }) {
             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-100">
               <div>
                 <p className="text-sm text-[#94A3B8] mb-2">Category</p>
-                <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">
+                <Badge variant="default" className="bg-slate-50 text-slate-700 border-slate-200">
                   {statusData.category || 'Uncategorized'}
                 </Badge>
               </div>
               <div>
                 <p className="text-sm text-[#94A3B8] mb-2">Urgency</p>
-                <Badge variant="outline" className={`
+                <Badge variant="default" className={`
                   ${statusData.urgency?.toLowerCase() === 'high' ? 'bg-red-50 text-red-700 border-red-200' : ''}
                   ${statusData.urgency?.toLowerCase() === 'medium' ? 'bg-orange-50 text-orange-700 border-orange-200' : ''}
                   ${statusData.urgency?.toLowerCase() === 'low' ? 'bg-green-50 text-green-700 border-green-200' : ''}

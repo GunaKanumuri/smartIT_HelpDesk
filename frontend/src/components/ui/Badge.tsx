@@ -4,7 +4,7 @@ import { type HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'accent' | 'success' | 'warning' | 'danger' | 'info' | 'outline'
+  variant?: 'default' | 'secondary' | 'outline' | 'accent' | 'success' | 'warning' | 'danger' | 'info'
   size?: 'sm' | 'md'
   dot?: boolean
 }
@@ -12,22 +12,24 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 export default function Badge({ className, variant = 'default', size = 'sm', dot = false, children, ...props }: BadgeProps) {
   const variants = {
     default: 'bg-white/10 text-white/70',
+    secondary: 'bg-white/5 text-white/70 border border-white/10',
+    outline: 'border border-svk-accent/40 text-svk-accent bg-transparent',
     accent: 'bg-svk-accent/15 text-svk-accent',
     success: 'bg-emerald-500/15 text-emerald-400',
     warning: 'bg-amber-500/15 text-amber-400',
     danger: 'bg-red-500/15 text-red-400',
     info: 'bg-blue-500/15 text-blue-400',
-    outline: 'bg-transparent border border-white/10 text-white/70',
   }
 
   const dotColors = {
     default: 'bg-white/50',
+    secondary: 'bg-white/50',
+    outline: 'bg-svk-accent',
     accent: 'bg-svk-accent',
     success: 'bg-emerald-400',
     warning: 'bg-amber-400',
     danger: 'bg-red-400',
     info: 'bg-blue-400',
-    outline: 'bg-white/50',
   }
 
   const sizes = {

@@ -53,7 +53,7 @@ export default function Navbar() {
 
           <div className="hidden md:flex items-center gap-4">
             <Link href="/signup">
-              <Button variant="default" className="bg-[#0FA4AF] hover:bg-[#0FA4AF]/90 text-white shadow-[0_0_15px_rgba(15,164,175,0.4)] transition-all hover:shadow-[0_0_25px_rgba(15,164,175,0.6)]">
+              <Button variant="primary" className="bg-[#0FA4AF] hover:bg-[#0FA4AF]/90 text-white shadow-[0_0_15px_rgba(15,164,175,0.4)] transition-all hover:shadow-[0_0_25px_rgba(15,164,175,0.6)]">
                 Get Started
               </Button>
             </Link>

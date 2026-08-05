@@ -6,12 +6,12 @@ import { cn } from '@/lib/utils'
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
   error?: string
-  options?: { value: string; label: string }[]
+  options: { value: string; label: string }[]
   placeholder?: string
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, options, placeholder, id, children, ...props }, ref) => {
+  ({ className, label, error, options, placeholder, id, ...props }, ref) => {
     const selectId = id || label?.toLowerCase().replace(/\s+/g, '-')
 
     return (
@@ -35,21 +35,16 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             )}
             {...props}
           >
-            {children
-              ? children
-              : <>
-                  {placeholder && (
-                    <option value="" disabled className="bg-white text-gray-500">
-                      {placeholder}
-                    </option>
-                  )}
-                  {options?.map(opt => (
-                    <option key={opt.value} value={opt.value} className="bg-white text-gray-900">
-                      {opt.label}
-                    </option>
-                  ))}
-                </>
-            }
+            {placeholder && (
+              <option value="" disabled className="bg-admin-surface text-admin-text-muted">
+                {placeholder}
+              </option>
+            )}
+            {options.map(opt => (
+              <option key={opt.value} value={opt.value} className="bg-admin-surface text-admin-text">
+                {opt.label}
+              </option>
+            ))}
           </select>
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

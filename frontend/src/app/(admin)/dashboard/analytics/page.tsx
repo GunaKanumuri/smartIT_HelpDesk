@@ -1,32 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { Card } from '@/components/ui/Card';
 import { SkeletonCard } from '@/components/ui/Skeleton';
-import { getTickets } from '@/lib/api';
+import { getTickets, TICKETS_KEY } from '@/lib/api';
 import type { Ticket } from '@/types';
+import useSWR from 'swr';
+import dynamic from 'next/dynamic';
+
+// Dynamic import for Recharts components to reduce main bundle size
+const ResponsiveBarChart = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
 
 export default function AnalyticsPage() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: ticketsData, isLoading: loading } = useSWR<Ticket[]>(TICKETS_KEY, getTickets, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+  });
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const data = await getTickets();
-        setTickets(data);
-      } catch (error) {
-        console.error('Failed to load tickets for analytics:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+  const tickets = ticketsData || [];
 
   if (loading) {
     return (

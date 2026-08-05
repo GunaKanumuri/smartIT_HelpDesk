@@ -3,6 +3,7 @@
 import Link from 'next/link';
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
   return (
     <footer className="bg-[#050505] border-t border-white/10 pt-16 pb-8 relative z-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -52,7 +53,7 @@ export default function Footer() {
 
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-600">
-            © 2024 SevaKAI. All rights reserved.
+            © {currentYear} SevaKAI. All rights reserved.
           </p>
           <p className="text-sm text-gray-600 flex items-center gap-1">
             Built with AI by Guna Kanumuri

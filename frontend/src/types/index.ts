@@ -102,12 +102,12 @@ export interface TrainMetrics {
 }
 
 export interface WorkspaceUser {
-  id: number | string
+  id: number
   workspace_id: number
   email: string
   display_name: string
   role: string
-  is_active: boolean | number
+  is_active: number
   created_at: string
   last_login_at: string | null
 }

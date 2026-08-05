@@ -17,7 +17,7 @@ export default function TrainingPage() {
   const [trainMetrics, setTrainMetrics] = useState<TrainMetrics | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { addToast } = useToast();
+  const { toast } = useToast();
 
   const fetchModelInfo = async () => {
     try {
@@ -25,7 +25,8 @@ export default function TrainingPage() {
       setModelInfo(info);
     } catch (error) {
       console.error('Failed to load model info:', error);
-      addToast('Failed to load model details', 'error');    } finally {
+      toast('Failed to load model details', 'error');
+    } finally {
       setLoading(false);
     }
   };
@@ -41,12 +42,9 @@ export default function TrainingPage() {
       const newStatus = !modelInfo.is_custom_active;
       await setActiveModel(newStatus);
       setModelInfo({ ...modelInfo, is_custom_active: newStatus });
-      addToast({
-        title: `Switched to ${newStatus ? 'Custom' : 'Default'} Model`,
-        type: 'success'
-      });
+      toast(`Switched to ${newStatus ? 'Custom' : 'Default'} Model`, 'success');
     } catch (error) {
-      addToast('Failed to switch model', 'error');
+      toast('Failed to switch model', 'error');
     }
   };
 
@@ -55,7 +53,7 @@ export default function TrainingPage() {
     
     const isCsvOrJson = file.name.endsWith('.csv') || file.name.endsWith('.json');
     if (!isCsvOrJson) {
-      addToast({ title: 'Invalid file type', message: 'Please upload a CSV or JSON file.', type: 'error' });
+      toast('Invalid file type — please upload a CSV or JSON file.', 'error');
       return;
     }
 
@@ -65,11 +63,11 @@ export default function TrainingPage() {
     try {
       const metrics = await trainModel(file);
       setTrainMetrics(metrics);
-      addToast({ title: 'Model trained successfully', type: 'success' });
+      toast('Model trained successfully', 'success');
       await fetchModelInfo(); // Refresh model info
     } catch (error: any) {
       console.error('Training error:', error);
-      addToast({ title: 'Training failed', message: error.message || 'An error occurred during training', type: 'error' });
+      toast(error instanceof Error ? error.message : 'An error occurred during training', 'error');
     } finally {
       setIsTraining(false);
     }
@@ -173,7 +171,7 @@ export default function TrainingPage() {
               <p className="text-sm text-slate-400 mb-2">Supported Categories ({modelInfo?.categories?.length || 0})</p>
               <div className="flex flex-wrap gap-2">
                 {modelInfo?.categories?.map(cat => (
-                  <Badge key={cat} variant="outline" className="text-slate-300 border-white/10 bg-black/20">
+                  <Badge key={cat} variant="default" className="text-slate-300 border-white/10 bg-black/20">
                     {cat}
                   </Badge>
                 ))}

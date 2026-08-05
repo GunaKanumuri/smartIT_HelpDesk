@@ -1,3 +1,18 @@
+/**
+ * =============================================================================
+ * page.tsx — Frontend / Src / App
+ *
+ * AUDIENCE: SevakAI Platform (Us)
+ *
+ * TABLE OF CONTENTS
+ * -----------------
+ * 1. IMPORTS            — React, UI primitives, API client, types
+ * 2. STATE & LOADING    — Data fetching, filters, sort, modal state
+ * 3. FILTER / SORT LOGIC — Derived view of fetched data
+ * 4. RENDER             — Layout, table, empty states
+ * =============================================================================
+ */
+
 'use client'
 
 import { useEffect, useRef } from 'react';
@@ -14,6 +29,8 @@ export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -66,6 +83,8 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {

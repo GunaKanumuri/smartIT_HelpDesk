@@ -210,6 +210,48 @@ pytest tests/ -v
 - CORS configured for API safety
 - Audit trail for all user and ticket actions
 
+## 🚀 Deployment
+
+### Backend (Django API)
+
+```bash
+cd backend
+cp ../.env.example ../.env   # then fill in real values
+
+# Set DJANGO_DEBUG=0 and provide DJANGO_SECRET_KEY in .env
+export DJANGO_DEBUG=0
+export DJANGO_SECRET_KEY=$(python -c "import secrets; print(secrets.token_urlsafe(50))")
+
+# Install production deps
+pip install -r requirements.txt gunicorn
+
+# Init DB + train models
+python -c "import os, django; os.environ.setdefault('DJANGO_SETTINGS_MODULE','sevak_ai.settings'); django.setup(); from backend.database import init_db; init_db()"
+python -m backend.ml.train_model
+
+# Run with gunicorn
+gunicorn sevak_ai.wsgi:application -c gunicorn.conf.py
+```
+
+### Frontend (Next.js)
+
+```bash
+cd frontend
+cp .env.local.example .env.local   # set NEXT_PUBLIC_API_URL
+npm run build
+npm start
+```
+
+### Scaling checklist
+- Switch to PostgreSQL when >1,000 workspaces (see `.env.example`)
+- Set `CACHE_BACKEND=redis` + `REDIS_URL` for multi-worker caching
+- Enable Sentry with `SENTRY_DSN` for error tracking
+- Set `EMAIL_ENABLED=1` + SMTP vars when ready to send real emails
+- Run `python -m pytest` in CI (see `.github/workflows/ci.yml`)
+
+### Platform console
+After deploying, visit `/console` on the frontend to see the SevakAI operator dashboard (system-wide metrics + tenant list).
+
 ## 👥 Team
 
 Built by **Guna Kanumuri** — © 2026 SevakAI. All rights reserved.

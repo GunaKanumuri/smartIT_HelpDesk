@@ -15,7 +15,7 @@ export default function TopBar({ toggleMobile }: TopBarProps) {
   
   // Format breadcrumb based on pathname
   const getPageName = () => {
-    if (pathname == null) return 'Dashboard';
+    if (!pathname) return 'Dashboard';
     if (pathname === '/dashboard') return 'Overview';
     if (pathname.includes('/tickets')) return 'Tickets';
     if (pathname.includes('/analytics')) return 'Analytics';
@@ -42,7 +42,7 @@ export default function TopBar({ toggleMobile }: TopBarProps) {
       
       <div className="flex items-center gap-5">
         {workspace && (
-          <Badge variant="default" className="hidden sm:inline-flex bg-svk-accent/10 text-svk-accent border-svk-accent/20">
+          <Badge variant="secondary" className="hidden sm:inline-flex bg-svk-accent/10 text-svk-accent border-svk-accent/20">
             {workspace.name}
           </Badge>
         )}

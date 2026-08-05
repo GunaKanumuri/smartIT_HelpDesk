@@ -22,12 +22,12 @@ export default function AddMemberModal({ isOpen, onClose, onAdded }: AddMemberMo
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('agent');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addToast } = useToast();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      addToast({ title: 'Validation Error', message: 'Email and password are required', type: 'error' });
+      toast('Email and password are required', 'error');
       return;
     }
 
@@ -39,10 +39,10 @@ export default function AddMemberModal({ isOpen, onClose, onAdded }: AddMemberMo
         display_name: displayName,
         role
       });
-      
+
       onAdded(newMember);
-      addToast({ title: 'Member added successfully', type: 'success' });
-      
+      toast('Member added successfully', 'success');
+
       // Reset form
       setEmail('');
       setDisplayName('');
@@ -51,11 +51,7 @@ export default function AddMemberModal({ isOpen, onClose, onAdded }: AddMemberMo
       onClose();
     } catch (error: any) {
       console.error('Failed to add member:', error);
-      addToast({ 
-        title: 'Failed to add member', 
-        message: error.message || 'An error occurred', 
-        type: 'error' 
-      });
+      toast(error.message || 'An error occurred', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -102,14 +98,15 @@ export default function AddMemberModal({ isOpen, onClose, onAdded }: AddMemberMo
         
         <div>
           <label className="text-xs font-medium text-slate-400 block mb-1">Role</label>
-          <Select 
+          <Select
             value={role}
             onChange={(e) => setRole(e.target.value)}
             className="bg-black/20 w-full"
-          >
-            <option value="agent">Agent (Can view and manage tickets)</option>
-            <option value="admin">Admin (Full access including settings)</option>
-          </Select>
+            options={[
+              { value: 'agent', label: 'Agent (Can view and manage tickets)' },
+              { value: 'admin', label: 'Admin (Full access including settings)' },
+            ]}
+          />
         </div>
         
         <div className="flex justify-end gap-3 pt-4 border-t border-white/10 mt-6">

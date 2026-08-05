@@ -8,42 +8,42 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        /* Brand core */
-        'svk-accent': '#0FA4AF',
-        'svk-accent-light': '#AFDDE5',
-        'svk-coral': '#964734',
+        /* Brand core - Brighter & More Vibrant */
+        'svk-accent': '#2563EB',
+        'svk-accent-light': '#60A5FA',
+        'svk-coral': '#F43F5E',
 
-        /* Landing */
-        'landing-bg': '#0A0E1A',
-        'landing-bg-alt': '#0F1529',
-        'landing-surface': 'rgba(255,255,255,0.03)',
-        'landing-text': '#E8E4DC',
-        'landing-text-muted': '#6B7280',
+        /* Landing - Modern Dark to Bright Transition */
+        'landing-bg': '#0F172A',
+        'landing-bg-alt': '#1E293B',
+        'landing-surface': 'rgba(255,255,255,0.05)',
+        'landing-text': '#F8FAFC',
+        'landing-text-muted': '#94A3B8',
 
-        /* Auth */
-        'auth-bg': '#0A0E1A',
-        'auth-surface': '#111827',
-        'auth-text': '#E8E4DC',
-        'auth-text-muted': '#9CA3AF',
+        /* Auth - Clean & Professional */
+        'auth-bg': '#F8FAFC',
+        'auth-surface': '#FFFFFF',
+        'auth-text': '#0F172A',
+        'auth-text-muted': '#64748B',
         'auth-error': '#EF4444',
         'auth-success': '#10B981',
 
-        /* Admin */
-        'admin-bg': '#0B0F19',
-        'admin-sidebar': '#0F1320',
-        'admin-surface': '#151A2D',
-        'admin-surface-hover': '#1C2240',
-        'admin-text': '#E2E8F0',
-        'admin-text-muted': '#64748B',
+        /* Admin - High Contrast Light Theme */
+        'admin-bg': '#F1F5F9',
+        'admin-sidebar': '#FFFFFF',
+        'admin-surface': '#FFFFFF',
+        'admin-surface-hover': '#F8FAFC',
+        'admin-text': '#0F172A',
+        'admin-text-muted': '#475569',
         'admin-success': '#10B981',
         'admin-warning': '#F59E0B',
         'admin-danger': '#EF4444',
 
-        /* Customer */
+        /* Customer - Clean & Accessible */
         'customer-bg': '#F8FAFC',
         'customer-surface': '#FFFFFF',
         'customer-text': '#1E293B',
-        'customer-text-muted': '#94A3B8',
+        'customer-text-muted': '#64748B',
         'customer-border': '#E2E8F0',
       },
       fontFamily: {
@@ -68,16 +68,16 @@ module.exports = {
         'pill': '100px',
       },
       boxShadow: {
-        'glass': '0 4px 24px rgba(0,0,0,0.15)',
-        'glass-lg': '0 8px 40px rgba(0,0,0,0.2)',
-        'accent-glow': '0 0 20px rgba(15,164,175,0.3)',
-        'accent-glow-lg': '0 0 40px rgba(15,164,175,0.5)',
-        'card-dark': '0 4px 24px rgba(0,0,0,0.3)',
-        'card-dark-hover': '0 8px 40px rgba(0,0,0,0.4)',
+        'glass': '0 4px 24px rgba(0,0,0,0.04)',
+        'glass-lg': '0 8px 40px rgba(0,0,0,0.06)',
+        'accent-glow': '0 0 20px rgba(37,99,235,0.15)',
+        'accent-glow-lg': '0 0 40px rgba(37,99,235,0.25)',
+        'card-dark': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'card-dark-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
         'card-light': '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)',
         'card-light-hover': '0 4px 12px rgba(0,0,0,0.1)',
-        'sidebar': '2px 0 8px rgba(0,0,0,0.3)',
-        'dropdown': '0 8px 24px rgba(0,0,0,0.5)',
+        'sidebar': '1px 0 0 rgba(0,0,0,0.05)',
+        'dropdown': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
       },
       spacing: {
         '18': '4.5rem',
@@ -110,8 +110,8 @@ module.exports = {
           '100%': { transform: 'translateY(0) rotateX(0) rotateY(0)' },
         },
         'pulse-glow': {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(15,164,175,0.2)' },
-          '50%': { boxShadow: '0 0 40px rgba(15,164,175,0.5)' },
+          '0%, 100%': { boxShadow: '0 0 20px rgba(37,99,235,0.1)' },
+          '50%': { boxShadow: '0 0 40px rgba(37,99,235,0.3)' },
         },
         shimmer: {
           '0%': { transform: 'translateX(-100%)' },
@@ -145,7 +145,7 @@ module.exports = {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'grid-pattern': 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
+        'grid-pattern': 'linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)',
       },
       backgroundSize: {
         'grid': '40px 40px',

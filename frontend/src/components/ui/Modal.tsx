@@ -15,7 +15,6 @@ interface ModalProps {
 
 export default function Modal({ open, isOpen, onClose, children, title, size = 'md', className }: ModalProps) {
   const isVisible = open ?? isOpen ?? false
-
   const handleEscape = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') onClose()
   }, [onClose])

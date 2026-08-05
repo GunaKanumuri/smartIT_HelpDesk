@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Search, Filter, ArrowUpDown } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -9,40 +9,29 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { SkeletonTable } from '@/components/ui/Skeleton';
 import TicketDetailModal from '@/components/admin/TicketDetailModal';
-import { getTickets } from '@/lib/api';
+import { getTickets, TICKETS_KEY } from '@/lib/api';
 import type { Ticket } from '@/types';
 import { formatDate } from '@/lib/utils';
+import useSWR from 'swr';
 
 export default function TicketsPage() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [loading, setLoading] = useState(true);
-  
+  const { data: ticketsData, error, isLoading: loading, mutate } = useSWR<Ticket[]>(TICKETS_KEY, getTickets, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+  });
+
+  const tickets = ticketsData || [];
+
   // Filtering and sorting
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [urgencyFilter, setUrgencyFilter] = useState('all');
   const [sortField, setSortField] = useState<keyof Ticket>('created_at');
   const [sortDesc, setSortDesc] = useState(true);
-  
+
   // Modal state
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const fetchTickets = async () => {
-    setLoading(true);
-    try {
-      const data = await getTickets();
-      setTickets(data);
-    } catch (error) {
-      console.error('Failed to load tickets:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTickets();
-  }, []);
 
   const handleSort = (field: keyof Ticket) => {
     if (sortField === field) {
@@ -59,7 +48,8 @@ export default function TicketsPage() {
   };
 
   const handleTicketUpdated = (updatedTicket: Ticket) => {
-    setTickets(prev => prev.map(t => t.ticket_id === updatedTicket.ticket_id ? updatedTicket : t));
+    const updated = tickets.map(t => t.ticket_id === updatedTicket.ticket_id ? updatedTicket : t);
+    mutate(updated, false);
   };
 
   // Filter and sort logic
@@ -109,28 +99,30 @@ export default function TicketsPage() {
         </div>
         
         <div className="flex gap-4">
-          <Select 
-            value={statusFilter} 
+          <Select
+            value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-[140px] bg-black/20 border-white/10 text-white"
-          >
-            <option value="all">All Status</option>
-            <option value="open">Open</option>
-            <option value="in_progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-            <option value="closed">Closed</option>
-          </Select>
-          
-          <Select 
-            value={urgencyFilter} 
+            options={[
+              { value: 'all', label: 'All Status' },
+              { value: 'open', label: 'Open' },
+              { value: 'in_progress', label: 'In Progress' },
+              { value: 'resolved', label: 'Resolved' },
+              { value: 'closed', label: 'Closed' },
+            ]}
+          />
+
+          <Select
+            value={urgencyFilter}
             onChange={(e) => setUrgencyFilter(e.target.value)}
             className="w-[140px] bg-black/20 border-white/10 text-white"
-          >
-            <option value="all">All Urgency</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </Select>
+            options={[
+              { value: 'all', label: 'All Urgency' },
+              { value: 'high', label: 'High' },
+              { value: 'medium', label: 'Medium' },
+              { value: 'low', label: 'Low' },
+            ]}
+          />
         </div>
       </Card>
 

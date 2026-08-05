@@ -15,7 +15,7 @@ import { formatRelativeTime } from '@/lib/utils';
 
 export default function SettingsPage() {
   const { workspace } = useAuth();
-  const { addToast } = useToast();
+  const { toast } = useToast();
   
   const [escalations, setEscalations] = useState<Escalation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,10 +47,10 @@ export default function SettingsPage() {
     setIsSaving(true);
     try {
       await setEscalationEmail(emailInput || null);
-      addToast('Escalation email updated', 'success');
+      toast('Escalation email updated', 'success');
       // Note: In a real app, we might need to refresh the workspace auth context here
     } catch (error) {
-      addToast('Failed to update email', 'error');
+      toast('Failed to update email', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -104,7 +104,7 @@ export default function SettingsPage() {
               
               <div>
                 <label className="text-xs text-slate-500 block mb-1">Sector</label>
-                <Badge variant="outline" className="text-slate-300 border-white/10 capitalize">
+                <Badge variant="default" className="text-slate-300 border-white/10 capitalize">
                   {workspace.sector || 'N/A'}
                 </Badge>
               </div>

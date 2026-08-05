@@ -20,14 +20,14 @@ export default function Features() {
     <section id="features" className="py-24 relative z-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="reveal transition-all duration-700 ease-out text-center max-w-3xl mx-auto mb-16">
+        <div className="reveal opacity-0 translate-y-10 transition-all duration-700 ease-out text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">Built Different</h2>
           <p className="text-xl text-gray-400">Everything you need to transform support chaos into clarity.</p>
         </div>
 
         <div className="stagger-children grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <div key={index} className="reveal transition-all duration-500 ease-out" style={{ transitionDelay: `${index * 100}ms` }}>
+            <div key={index} className="reveal opacity-0 translate-y-10 transition-all duration-500 ease-out" style={{ transitionDelay: `${index * 100}ms` }}>
               <Card variant="glass" hover={true} glow={true} className="h-full p-6 border-white/5 bg-white/5 backdrop-blur-sm relative group overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#0FA4AF]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 flex flex-col h-full">
